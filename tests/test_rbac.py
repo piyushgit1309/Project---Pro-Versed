@@ -3,14 +3,15 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
-# Add Pro-Versed directory to path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-pro_versed_dir = os.path.join(parent_dir, "Pro-Versed")
-if pro_versed_dir not in sys.path:
-    sys.path.insert(0, pro_versed_dir)
+# Add Pro-Versed directories to path
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+pv_backend_dir = os.path.join(root_dir, "Pro-Versed", "backend")
+pv_dir = os.path.join(root_dir, "Pro-Versed")
+for p in [pv_backend_dir, pv_dir, root_dir]:
+    if os.path.exists(p) and p not in sys.path:
+        sys.path.insert(0, p)
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 

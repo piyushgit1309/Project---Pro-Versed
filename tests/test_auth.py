@@ -19,15 +19,20 @@ for p in [pv_backend_dir, pv_dir, root_dir]:
     if os.path.exists(p) and p not in sys.path:
         sys.path.insert(0, p)
 
-# Point database to isolated test DB
-test_db_fd, test_db_path = tempfile.mkstemp(suffix="_test_auth.db")
-os.close(test_db_fd)
-os.environ["PROVERSED_DB_PATH"] = test_db_path
+# Point database to isolated test DB only if DATABASE_URL is not provided
+if not os.environ.get("DATABASE_URL"):
+    test_db_fd, test_db_path = tempfile.mkstemp(suffix="_test_auth.db")
+    os.close(test_db_fd)
+    os.environ["PROVERSED_DB_PATH"] = test_db_path
 
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from database import init_db, get_db_connection
+from database import init_db, get_db_session, SessionLocal
+from models import (
+    UserORM, LoginAttemptORM, PasswordResetAttemptORM, OtpVerificationORM,
+    OtpRequestORM, AccountSecurityORM, SessionORM
+)
 from auth import (
     hash_password, verify_password,
     check_rate_limit, record_login_attempt,
@@ -45,18 +50,27 @@ client = TestClient(app)
 def setup_and_teardown_db():
     """Initializes and resets the test database before each test."""
     init_db()
+    with get_db_session() as session:
+        seed_user_ids = [
+            "usr_student_1", "usr_faculty_1", "usr_spoc_1", "usr_industrialist_1",
+            "usr_admin_1", "usr_sunita_raman", "usr_rk_mukherjee", "usr_vikram_s"
+        ]
+        session.query(UserORM).filter(~UserORM.id.in_(seed_user_ids)).delete(synchronize_session=False)
+        session.query(LoginAttemptORM).delete()
+        session.query(PasswordResetAttemptORM).delete()
+        session.query(OtpVerificationORM).delete()
+        session.query(OtpRequestORM).delete()
+        session.query(AccountSecurityORM).delete()
+        session.query(SessionORM).delete()
+        session.commit()
+
+        default_pwhash, default_pwsalt = hash_password("Password123!")
+        session.query(UserORM).update({
+            UserORM.password_hash: default_pwhash,
+            UserORM.password_salt: default_pwsalt,
+            UserORM.is_active: 1
+        })
     yield
-    # Clean up test database tables
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM login_attempts;")
-    cursor.execute("DELETE FROM password_reset_attempts;")
-    cursor.execute("DELETE FROM otp_verifications;")
-    cursor.execute("DELETE FROM otp_requests;")
-    cursor.execute("DELETE FROM account_security;")
-    cursor.execute("DELETE FROM sessions;")
-    conn.commit()
-    conn.close()
 
 
 # ==========================================
@@ -164,26 +178,26 @@ def test_account_lockout_after_5_consecutive_failures():
 def test_lockout_auto_resets_after_3_hours():
     """Account automatically unlocks and counter resets after the 3-hour lockout expires."""
     target_email = "rk.mukherjee@nitt.edu.in"
-    conn = get_db_connection()
+    db = SessionLocal()
 
     # Trigger 5 failed attempts at T0
     t0 = datetime.now(timezone.utc)
     for _ in range(5):
-        record_failed_login(conn, target_email, now=t0)
+        record_failed_login(db, target_email, now=t0)
 
     # Verify locked at T0 + 1 hour
     t_1hr = t0 + timedelta(hours=1)
-    status_1hr = get_account_security_status(conn, target_email, now=t_1hr)
+    status_1hr = get_account_security_status(db, target_email, now=t_1hr)
     assert status_1hr["is_locked"] is True
     assert status_1hr["remaining_lockout_seconds"] > 0
 
     # Verify unlocked at T0 + 3 hours + 1 second
     t_3hr_post = t0 + timedelta(seconds=ACCOUNT_LOCKOUT_DURATION_SECONDS + 1)
-    status_expired = get_account_security_status(conn, target_email, now=t_3hr_post)
+    status_expired = get_account_security_status(db, target_email, now=t_3hr_post)
     assert status_expired["is_locked"] is False
     assert status_expired["consecutive_failed_attempts"] == 0
 
-    conn.close()
+    db.close()
 
 
 def test_successful_login_resets_failed_attempts_counter():
@@ -198,10 +212,10 @@ def test_successful_login_resets_failed_attempts_counter():
         })
         assert res.status_code == 401
 
-    conn = get_db_connection()
-    status_before = get_account_security_status(conn, target_email)
+    db = SessionLocal()
+    status_before = get_account_security_status(db, target_email)
     assert status_before["consecutive_failed_attempts"] == 3
-    conn.close()
+    db.close()
 
     # Successful login
     res_ok = client.post("/api/auth/login", json={
@@ -210,10 +224,10 @@ def test_successful_login_resets_failed_attempts_counter():
     })
     assert res_ok.status_code == 200
 
-    conn = get_db_connection()
-    status_after = get_account_security_status(conn, target_email)
+    db = SessionLocal()
+    status_after = get_account_security_status(db, target_email)
     assert status_after["consecutive_failed_attempts"] == 0
-    conn.close()
+    db.close()
 
 
 # ==========================================
@@ -248,26 +262,26 @@ def test_rate_limiting_10_attempts_per_hour():
 
 def test_rate_limiting_sliding_window():
     """Direct test of check_rate_limit sliding 1-hour window mechanism."""
-    conn = get_db_connection()
+    db = SessionLocal()
     ip = "10.0.0.50"
     email = "sliding@window.test"
 
     t0 = datetime.now(timezone.utc)
     for _ in range(10):
-        record_login_attempt(conn, ip, email, is_success=False, now=t0)
+        record_login_attempt(db, ip, email, is_success=False, now=t0)
 
     # 11th at T0 -> Blocked
-    allowed, rem = check_rate_limit(conn, ip, email, now=t0)
+    allowed, rem = check_rate_limit(db, ip, email, now=t0)
     assert allowed is False
     assert rem == 0
 
     # At T0 + 61 minutes -> Window has slid past -> Allowed again
     t_later = t0 + timedelta(minutes=61)
-    allowed_later, rem_later = check_rate_limit(conn, ip, email, now=t_later)
+    allowed_later, rem_later = check_rate_limit(db, ip, email, now=t_later)
     assert allowed_later is True
     assert rem_later == 10
 
-    conn.close()
+    db.close()
 
 
 # ==========================================
@@ -418,13 +432,12 @@ def test_forgot_password_success_and_generic_response():
     assert data.get("reset_token") is not None
 
     # Verify reset token was hashed and stored in database
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT reset_password_token, reset_password_expires FROM users WHERE email = ?;", ("aarav@cse.iitb.ac.in",))
-    row = cursor.fetchone()
-    conn.close()
-    assert row["reset_password_token"] is not None
-    assert row["reset_password_expires"] is not None
+    db = SessionLocal()
+    user_row = db.query(UserORM).filter(UserORM.email == "aarav@cse.iitb.ac.in").first()
+    db.close()
+    assert user_row is not None
+    assert user_row.reset_password_token is not None
+    assert user_row.reset_password_expires is not None
 
 
 def test_forgot_password_nonexistent_email_returns_identical_generic_response():
