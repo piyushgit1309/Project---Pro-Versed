@@ -9,7 +9,7 @@ from fastapi import Request, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import UserORM, ProjectORM
+from models import UserORM, ProjectORM, IndustrialOfferORM
 from auth import validate_session
 
 
@@ -20,6 +20,10 @@ PRIVILEGED_LIFECYCLE_STATUSES: Set[str] = {
 PRIVILEGED_PATENT_STATUSES: Set[str] = {
     "Filed", "Published", "Granted"
 }
+
+MINIMUM_OFFER_AMOUNT_INR: float = 1000.0
+LEGAL_OFFER_STATUSES: Set[str] = {"Pending", "Countered", "Accepted", "Rejected", "Withdrawn"}
+LEGAL_SPOC_APPROVAL_STATUSES: Set[str] = {"Pending", "Approved", "Denied"}
 
 
 def get_session_token_from_request(request: Request) -> Optional[str]:
@@ -156,3 +160,14 @@ def require_project_spoc_or_admin(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Only the Campus SPOC for this institution or a Platform Administrator may perform this action."
     )
+
+
+def get_offer_or_404(offer_id: str, db: Session) -> IndustrialOfferORM:
+    """Retrieves an IndustrialOfferORM record by ID or raises HTTP 404."""
+    offer = db.query(IndustrialOfferORM).filter(IndustrialOfferORM.id == offer_id).first()
+    if not offer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Industrial offer not found"
+        )
+    return offer

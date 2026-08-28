@@ -21,8 +21,9 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from database import get_db, get_db_session, get_db_context, is_academic_domain, is_industry_domain, init_db
 from security import (
     get_current_active_user, require_roles, require_project_owner_or_admin,
-    require_project_spoc_or_admin, get_project_or_404,
-    PRIVILEGED_LIFECYCLE_STATUSES, PRIVILEGED_PATENT_STATUSES
+    require_project_spoc_or_admin, get_project_or_404, get_offer_or_404,
+    PRIVILEGED_LIFECYCLE_STATUSES, PRIVILEGED_PATENT_STATUSES,
+    MINIMUM_OFFER_AMOUNT_INR, LEGAL_OFFER_STATUSES, LEGAL_SPOC_APPROVAL_STATUSES
 )
 from models import (
     UserORM, ProjectORM, TaskORM, MarketplaceItemORM, IndustrialOfferORM,
@@ -1162,37 +1163,99 @@ def handle_escrow_action(
 @app.get("/api/industrial/offers", response_model=List[IndustrialOfferResponse])
 def get_industrial_offers(
     project_id: Optional[str] = None,
-    current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user),
+    current_user: UserORM = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Lists corporate technology transfer offers and commercial IP buyout bids."""
+    """
+    Lists corporate technology transfer offers and commercial IP buyout bids.
+    Enforces strict multi-tenant scoping based on authenticated caller persona:
+    - Student: Only offers for projects where caller is team lead.
+    - Industry Partner: Only offers submitted by caller.
+    - Campus SPOC: Only offers for projects belonging to caller's college.
+    - Faculty Mentor: Only offers for projects where caller is faculty mentor.
+    - Admin: All offers.
+    """
     query = db.query(IndustrialOfferORM)
+
+    if current_user.role == "student":
+        # Only projects led by this student
+        student_proj_ids = [p.id for p in db.query(ProjectORM.id).filter(ProjectORM.team_lead_id == current_user.id).all()]
+        query = query.filter(IndustrialOfferORM.project_id.in_(student_proj_ids))
+
+    elif current_user.role == "industrialist":
+        # Only offers submitted by this buyer
+        query = query.filter(IndustrialOfferORM.buyer_id == current_user.id)
+
+    elif current_user.role == "spoc":
+        # Only projects from this SPOC's college
+        if current_user.college:
+            college_proj_ids = [
+                p.id for p in db.query(ProjectORM.id).filter(
+                    ProjectORM.college_name.ilike(current_user.college.strip())
+                ).all()
+            ]
+            query = query.filter(IndustrialOfferORM.project_id.in_(college_proj_ids))
+        else:
+            query = query.filter(IndustrialOfferORM.id == "none")
+
+    elif current_user.role == "faculty":
+        # Only projects mentored by this faculty
+        faculty_proj_ids = [p.id for p in db.query(ProjectORM.id).filter(ProjectORM.faculty_mentor_id == current_user.id).all()]
+        query = query.filter(IndustrialOfferORM.project_id.in_(faculty_proj_ids))
+
+    elif current_user.role == "admin":
+        # Admin can view all offers
+        pass
+
+    else:
+        # Unknown role
+        query = query.filter(IndustrialOfferORM.id == "none")
+
     if project_id:
         query = query.filter(IndustrialOfferORM.project_id == project_id)
+
     offers = query.order_by(IndustrialOfferORM.created_at.desc()).all()
     return [dict_from_row(o) for o in offers]
 
 @app.post("/api/industrial/offers", response_model=IndustrialOfferResponse)
 def submit_industrial_offer(
     offer: IndustrialOfferCreate,
-    current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user),
+    current_user: UserORM = Depends(require_roles("industrialist", "admin")),
     db: Session = Depends(get_db)
 ):
-    """Submits a commercial bid, research sponsorship grant, or IP licensing proposal."""
+    """
+    Submits a commercial bid, research sponsorship grant, or IP licensing proposal.
+    Enforces role authorization (industry or admin), financial bounds (>= 1,000 INR),
+    and derives buyer identity strictly from verified session.
+    """
     proj = db.query(ProjectORM).filter(ProjectORM.id == offer.project_id).first()
-    proj_title = proj.title if proj else "Unknown Project"
+    if not proj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id '{offer.project_id}' not found."
+        )
+
+    if offer.offer_amount_inr is None or offer.offer_amount_inr < MINIMUM_OFFER_AMOUNT_INR:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Offer amount must be at least ₹{MINIMUM_OFFER_AMOUNT_INR:,.2f} INR."
+        )
 
     offer_id = f"off_{uuid.uuid4().hex[:8]}"
     now_str = datetime.now(timezone.utc).isoformat()
 
+    buyer_id = current_user.id
+    buyer_name = current_user.name
+    buyer_company = current_user.company or current_user.name or "Corporate Partner"
+
     new_offer = IndustrialOfferORM(
         id=offer_id,
         project_id=offer.project_id,
-        project_title=proj_title,
-        buyer_id=current_user.get("id", "usr_industrialist_1") if current_user else "usr_industrialist_1",
-        buyer_name=current_user.get("name", "Corporate Partner") if current_user else "Corporate Partner",
-        buyer_company=(current_user.get("company") or current_user.get("name", "Industry Partner")) if current_user else "Industry Partner",
-        offer_amount_inr=offer.offer_amount_inr,
+        project_title=proj.title,
+        buyer_id=buyer_id,
+        buyer_name=buyer_name,
+        buyer_company=buyer_company,
+        offer_amount_inr=float(offer.offer_amount_inr),
         proposal_type=offer.proposal_type,
         deliverables_message=offer.deliverables_message or "",
         status="Pending",
@@ -1209,20 +1272,152 @@ def submit_industrial_offer(
 def update_industrial_offer(
     offer_id: str,
     update_data: IndustrialOfferUpdate,
-    current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user),
+    current_user: UserORM = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Processes student negotiation counter-offers or SPOC university approvals."""
-    offer = db.query(IndustrialOfferORM).filter(IndustrialOfferORM.id == offer_id).first()
-    if not offer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Industrial offer not found")
+    """
+    Processes commercial negotiation (Accept, Counter, Reject, Withdraw) or institutional SPOC approval.
+    Enforces role/actor-specific permissions, state-machine transitions, and financial validations.
+    """
+    offer = get_offer_or_404(offer_id, db)
+    proj = db.query(ProjectORM).filter(ProjectORM.id == offer.project_id).first()
+    if not proj:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Associated project not found.")
 
-    if update_data.status is not None:
-        offer.status = update_data.status
-    if update_data.counter_amount_inr is not None:
-        offer.counter_amount_inr = update_data.counter_amount_inr
+    # Determine caller's relationship to offer
+    is_admin = current_user.role == "admin"
+    is_buyer = offer.buyer_id == current_user.id
+    is_lead = proj.team_lead_id == current_user.id
+    is_college_spoc = (
+        current_user.role == "spoc"
+        and bool(current_user.college)
+        and bool(proj.college_name)
+        and current_user.college.strip().lower() == proj.college_name.strip().lower()
+    )
+
+    # Check if caller has any authorization for this offer
+    if not (is_admin or is_buyer or is_lead or is_college_spoc):
+        # Anti-enumeration policy: Return 404 for unauthorized users
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Industrial offer not found"
+        )
+
+    # 1. Handle Institutional SPOC Approval Mutation
     if update_data.spoc_approval is not None:
+        if update_data.spoc_approval not in LEGAL_SPOC_APPROVAL_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid spoc_approval status '{update_data.spoc_approval}'. Allowed: {', '.join(LEGAL_SPOC_APPROVAL_STATUSES)}."
+            )
+
+        if not (is_college_spoc or is_admin):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the Campus SPOC for this institution or a Platform Administrator may modify institutional approval status."
+            )
+
+        if update_data.spoc_approval in ["Approved", "Denied"]:
+            # State-machine rule: SPOC approval is strictly post-agreement (status == "Accepted")
+            if offer.status != "Accepted":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Institutional SPOC approval/denial can only be granted after the offer has reached mutual commercial agreement ('Accepted')."
+                )
+
         offer.spoc_approval = update_data.spoc_approval
+
+    # 2. Handle Commercial Status / Negotiation Mutation
+    if update_data.status is not None:
+        target_status = update_data.status
+        if target_status not in LEGAL_OFFER_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid status '{target_status}'. Allowed: {', '.join(LEGAL_OFFER_STATUSES)}."
+            )
+
+        # Check for mutations on terminal states
+        if offer.status in ["Rejected", "Withdrawn"] and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot modify offer in terminal state '{offer.status}'."
+            )
+
+        if target_status == "Accepted":
+            # Lead can accept if Pending or Countered. Buyer can accept if Countered.
+            if is_lead:
+                if offer.status not in ["Pending", "Countered"]:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Cannot accept offer from state '{offer.status}'."
+                    )
+            elif is_buyer:
+                if offer.status != "Countered":
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Buyer can only accept an offer that has been countered by the student lead."
+                    )
+            elif not is_admin:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only the project lead or the offer buyer can accept commercial terms."
+                )
+
+            offer.status = "Accepted"
+
+        elif target_status == "Countered":
+            if not (is_lead or is_buyer or is_admin):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only the project lead or the buyer may submit a counter-offer."
+                )
+
+            if update_data.counter_amount_inr is None or update_data.counter_amount_inr < MINIMUM_OFFER_AMOUNT_INR:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Counter-offer amount must be at least ₹{MINIMUM_OFFER_AMOUNT_INR:,.2f} INR."
+                )
+
+            offer.status = "Countered"
+            offer.counter_amount_inr = float(update_data.counter_amount_inr)
+
+        elif target_status == "Rejected":
+            # Project lead can reject the offer
+            if not (is_lead or is_admin):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only the project lead or an administrator may reject an offer."
+                )
+            offer.status = "Rejected"
+
+        elif target_status == "Withdrawn":
+            # Buyer can withdraw their offer
+            if not (is_buyer or is_admin):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only the buyer who submitted this offer or an administrator may withdraw it."
+                )
+            if offer.status == "Accepted" and not is_admin:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot withdraw an offer that has already been mutually accepted."
+                )
+            offer.status = "Withdrawn"
+
+    # If counter_amount_inr is supplied without explicit status="Countered"
+    elif update_data.counter_amount_inr is not None:
+        if not (is_lead or is_buyer or is_admin):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the project lead or buyer may modify counter amount."
+            )
+        if update_data.counter_amount_inr < MINIMUM_OFFER_AMOUNT_INR:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Counter-offer amount must be at least ₹{MINIMUM_OFFER_AMOUNT_INR:,.2f} INR."
+            )
+        offer.counter_amount_inr = float(update_data.counter_amount_inr)
+        offer.status = "Countered"
 
     db.flush()
     return dict_from_row(offer)

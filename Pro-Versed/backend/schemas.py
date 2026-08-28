@@ -292,16 +292,16 @@ class MarketplaceItemResponse(BaseModel):
 # --- Industrial Offer Schemas ---
 class IndustrialOfferCreate(BaseModel):
     project_id: str
-    project_title: str
-    buyer_id: str
-    buyer_name: str
-    buyer_company: str
     offer_amount_inr: float
     proposal_type: str
+    project_title: Optional[str] = ""
+    buyer_id: Optional[str] = ""
+    buyer_name: Optional[str] = ""
+    buyer_company: Optional[str] = ""
     deliverables_message: Optional[str] = ""
 
 class IndustrialOfferUpdate(BaseModel):
-    status: Optional[str] = None  # Pending, Accepted, Countered, Rejected
+    status: Optional[str] = None  # Pending, Accepted, Countered, Rejected, Withdrawn
     counter_amount_inr: Optional[float] = None
     spoc_approval: Optional[str] = None  # Pending, Approved, Denied
 
