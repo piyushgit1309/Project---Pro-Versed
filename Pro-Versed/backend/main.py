@@ -19,6 +19,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, OperationalError
 
 from database import get_db, get_db_session, get_db_context, is_academic_domain, is_industry_domain, init_db
+from security import (
+    get_current_active_user, require_roles, require_project_owner_or_admin,
+    require_project_spoc_or_admin, get_project_or_404,
+    PRIVILEGED_LIFECYCLE_STATUSES, PRIVILEGED_PATENT_STATUSES
+)
 from models import (
     UserORM, ProjectORM, TaskORM, MarketplaceItemORM, IndustrialOfferORM,
     AuditLogORM, SessionORM, dict_from_row, orm_to_dict
@@ -702,23 +707,39 @@ def get_project_by_id(project_id: str, db: Session = Depends(get_db)):
 @app.post("/api/projects", response_model=ProjectResponse)
 def create_project(
     project: ProjectCreate,
-    current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user),
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
     Creates and audits a new project submission.
     Performs automated originality verification via in-memory TF-IDF + Cosine Sim engine.
+    Ownership is strictly bound to the authenticated user from the verified session.
     """
-    # Enforce role restrictions
-    creator_id = project.team_lead_id or (current_user.get("id") if current_user else "usr_student_1")
-    creator_role = current_user.get("role") if current_user else None
+    token = get_session_token_from_request(request)
+    current_user = None
+    if token:
+        current_user = get_current_active_user(request, db)
 
-    if not creator_role and creator_id:
-        u = db.query(UserORM).filter(UserORM.id == creator_id).first()
-        if u:
-            creator_role = u.role
+    # If no token, check if team_lead_id points to a persona for RBAC validation
+    if not current_user:
+        if project.team_lead_id:
+            u = db.query(UserORM).filter(UserORM.id == project.team_lead_id).first()
+            if u and u.role in ["faculty", "spoc", "industrialist"]:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only registered students or platform administrators may submit new projects."
+                )
+            if u and u.role in ["student", "admin"]:
+                current_user = u
 
-    if creator_role in ["faculty", "spoc", "industrialist"]:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required. Please provide a valid session token.",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+
+    if current_user.role in ["faculty", "spoc", "industrialist"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only registered students or platform administrators may submit new projects."
@@ -729,6 +750,21 @@ def create_project(
 
     proj_id = f"proj_{uuid.uuid4().hex[:8]}"
     now_str = datetime.now(timezone.utc).isoformat()
+
+    # Identity is strictly derived from the authenticated session
+    creator_id = current_user.id
+    creator_name = current_user.name
+    college_name = current_user.college or project.college_name or "IIT Bombay"
+    department = current_user.department or project.department or ""
+
+    # Enforce non-privileged initial statuses for students
+    initial_lifecycle = project.lifecycle_status or "Ideation"
+    if current_user.role != "admin" and initial_lifecycle in PRIVILEGED_LIFECYCLE_STATUSES:
+        initial_lifecycle = "Ideation"
+
+    initial_patent = project.patent_status or "Unfiled"
+    if current_user.role != "admin" and initial_patent in PRIVILEGED_PATENT_STATUSES:
+        initial_patent = "Unfiled"
 
     new_proj = ProjectORM(
         id=proj_id,
@@ -741,21 +777,21 @@ def create_project(
         repo_url=project.repo_url or "",
         demo_url=project.demo_url or "",
         bom=json.dumps([b.dict() for b in project.bom]),
-        lifecycle_status=project.lifecycle_status,
+        lifecycle_status=initial_lifecycle,
         originality_score=plag_result.get("originality_score", 100.0),
         similarity_index=plag_result.get("similarity_score", plag_result.get("similarity_index", 0.0)),
         plagiarism_status=plag_result.get("plagiarism_status", plag_result.get("status", "PASSED")),
         highest_match_project_id=plag_result.get("highest_match_project_id"),
         highest_match_title=plag_result.get("highest_match_title"),
         top_overlapping_keywords=json.dumps(plag_result.get("top_overlapping_keywords", [])),
-        college_name=project.college_name or (current_user.get("college", "") if current_user else "IIT Bombay"),
-        department=project.department or (current_user.get("department", "") if current_user else ""),
+        college_name=college_name,
+        department=department,
         team_lead_id=creator_id,
-        team_lead_name=project.team_lead_name or (current_user.get("name", "Aarav Patel") if current_user else "Aarav Patel"),
+        team_lead_name=creator_name,
         faculty_mentor_id=project.faculty_mentor_id or "",
         faculty_mentor_name=project.faculty_mentor_name or "",
         team_members=json.dumps(project.team_members),
-        patent_status=project.patent_status,
+        patent_status=initial_patent,
         estimated_budget_inr=project.estimated_budget_inr,
         stars_count=0,
         views_count=1,
@@ -788,13 +824,33 @@ def create_project(
 def update_project(
     project_id: str,
     update_data: ProjectUpdate,
-    current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user),
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    """Updates mutable project attributes."""
-    project = db.query(ProjectORM).filter(ProjectORM.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    """
+    Updates mutable project attributes.
+    Enforces project ownership / admin authorization, anti-enumeration (404),
+    and field-level permission policies.
+    """
+    current_user = get_current_active_user(request, db)
+    project = require_project_owner_or_admin(project_id, current_user, db)
+
+    # Field-level authorization checks
+    if update_data.patent_status is not None:
+        if update_data.patent_status in PRIVILEGED_PATENT_STATUSES and current_user.role not in ["admin", "spoc"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Setting authoritative patent status (Filed, Published, Granted) requires institutional SPOC or Administrator verification."
+            )
+        project.patent_status = update_data.patent_status
+
+    if update_data.lifecycle_status is not None:
+        if update_data.lifecycle_status in PRIVILEGED_LIFECYCLE_STATUSES and current_user.role not in ["admin", "spoc"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Transitioning project lifecycle to Incubation, Commercialized, IP_Transferred, or Verified requires institutional SPOC or Administrator authorization."
+            )
+        project.lifecycle_status = update_data.lifecycle_status
 
     if update_data.title is not None:
         project.title = update_data.title
@@ -814,10 +870,8 @@ def update_project(
         project.demo_url = update_data.demo_url
     if update_data.bom is not None:
         project.bom = json.dumps([b.dict() for b in update_data.bom])
-    if update_data.lifecycle_status is not None:
-        project.lifecycle_status = update_data.lifecycle_status
-    if update_data.patent_status is not None:
-        project.patent_status = update_data.patent_status
+    if update_data.faculty_mentor_name is not None:
+        project.faculty_mentor_name = update_data.faculty_mentor_name
     if update_data.estimated_budget_inr is not None:
         project.estimated_budget_inr = update_data.estimated_budget_inr
     if update_data.team_members is not None:
@@ -1283,9 +1337,10 @@ target_static = frontend_dir if os.path.exists(frontend_dir) else static_dir
 async def custom_404_handler(request: Request, exc):
     """Fallback handler returning single-page application index for frontend routing."""
     if request.url.path.startswith("/api/"):
+        detail = getattr(exc, "detail", None) or f"API endpoint '{request.url.path}' not found"
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content={"detail": f"API endpoint '{request.url.path}' not found", "error": "Not Found", "error_type": "not_found"}
+            content={"detail": detail, "error": "Not Found", "error_type": "not_found"}
         )
     index_file = os.path.join(target_static, "index.html")
     if os.path.exists(index_file):

@@ -137,10 +137,10 @@ class ProjectCreate(BaseModel):
     demo_url: Optional[str] = ""
     bom: List[BOMItem] = []
     lifecycle_status: Optional[str] = "Ideation"
-    college_name: str
+    college_name: Optional[str] = ""
     department: Optional[str] = ""
-    team_lead_id: str
-    team_lead_name: str
+    team_lead_id: Optional[str] = ""
+    team_lead_name: Optional[str] = ""
     faculty_mentor_id: Optional[str] = ""
     faculty_mentor_name: Optional[str] = ""
     team_members: Optional[List[str]] = []
@@ -161,6 +161,7 @@ class ProjectUpdate(BaseModel):
     patent_status: Optional[str] = None
     faculty_mentor_name: Optional[str] = None
     estimated_budget_inr: Optional[float] = None
+    team_members: Optional[List[str]] = None
 
 class ProjectResponse(BaseModel):
     id: str
