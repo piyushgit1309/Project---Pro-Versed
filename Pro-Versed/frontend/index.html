@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRO-VERSED — National Student Innovation Platform & Project Showcase</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            heading: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            cyanAccent: {
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2'
+            },
+            slateCard: {
+              800: '#151d32',
+              900: '#0e1424',
+              950: '#070a12'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Matter.js Physics Engine for Anti-Gravity Easter Egg -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Design System Styles -->
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen flex flex-col relative selection:bg-emerald-500/30 selection:text-emerald-300">
+
+  <!-- Interactive Zero-Gravity Space Starfield & Particle Dust Canvas -->
+  <canvas id="space-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Cinematic Background Ambient Lighting -->
+  <div class="cinematic-bg">
+    <div class="ambient-orb orb-emerald"></div>
+    <div class="ambient-orb orb-indigo"></div>
+    <div class="ambient-orb orb-cyan"></div>
+  </div>
+
+  <!-- Global Floating Top Navigation Header (Zero-G Glassmorphism) -->
+  <header id="main-floating-navbar" class="hidden sticky top-4 sm:top-5 z-40 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300">
+    <div class="rounded-2xl sm:rounded-3xl backdrop-blur-xl bg-[#050b14]/75 border border-emerald-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.7),0_0_20px_rgba(16,185,129,0.08)] px-4 sm:px-6 py-3.5 flex items-center justify-between w-full">
+      
+      <!-- 1. Brand Logo & Identity Redesign -->
+      <div class="flex items-center gap-3 cursor-pointer group select-none" onclick="switchTab('explore')">
+        <!-- Levitating Star Emblem with Neon Gradient Background -->
+        <div id="ag-brand-icon" class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-1 ring-white/20 animate-levitate group-hover:scale-110 transition-transform duration-300 shrink-0">
+          <i data-lucide="sparkles" class="w-5 h-5 text-slate-950 stroke-[2.5]"></i>
+        </div>
+        
+        <div class="flex flex-col justify-center">
+          <div class="flex items-center gap-2.5">
+            <!-- Single-Line Wordmark with Refined Typography -->
+            <span id="ag-brand-text" class="text-xl sm:text-2xl font-black tracking-tight text-white font-heading leading-none">
+              PRO-<span class="gradient-text-emerald">VERSED</span>
+            </span>
+            <!-- Redesigned Pill-Shaped Bharat Innovation Badge -->
+            <span id="ag-brand-badge" class="inline-flex items-center gap-1.5 border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full font-medium shimmer-badge shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+              <span>IN BHARAT INNOVATION</span>
+            </span>
+          </div>
+          <!-- Tiny Muted Subtext -->
+          <p id="ag-brand-subtext" class="text-[10px] text-slate-400 font-medium tracking-tight hidden lg:block mt-0.5 leading-tight">
+            National Student Innovation Platform & Project Showcase
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. Right Action Group: Anti-Gravity Toggle, User Profile / Login, CTA Button, Hamburger Menu -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        
+        <!-- Google Anti-Gravity Easter Egg Trigger Button -->
+        <button id="nav-antigravity-btn" onclick="triggerAntiGravity()" class="h-10 w-10 rounded-xl bg-purple-950/40 hover:bg-purple-900/70 border border-purple-500/30 hover:border-purple-400/60 text-purple-300 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-lg hover:shadow-purple-500/30 group relative shrink-0" title="Launch Anti-Gravity Physics Mode (Alt+G)">
+          <i data-lucide="zap" class="w-4 h-4 text-purple-400 group-hover:scale-110 group-hover:rotate-12 transition-transform"></i>
+          <span class="sr-only">Anti-Gravity</span>
+        </button>
+
+        <!-- Streamlined User Profile Avatar Pill with Dropdown -->
+        <div class="relative flex items-center" id="user-profile-dropdown-container">
+          <button onclick="toggleUserDropdown()" id="current-user-pill" class="h-10 flex items-center gap-2.5 px-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-emerald-500/40 transition-all duration-200 text-left group cursor-pointer shadow-md">
+            <div class="relative shrink-0">
+              <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 ring-emerald-500/40 object-cover" />
+              <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950"></span>
+            </div>
+            <div class="hidden sm:block leading-tight">
+              <div class="flex items-center gap-1.5">
+                <span id="user-name" class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">Aarav Sharma</span>
+                <span id="user-badge" class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Student</span>
+              </div>
+              <p id="user-role-college" class="text-[10px] text-slate-400 truncate max-w-[120px]">IIT Bombay</p>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors shrink-0"></i>
+          </button>
+
+          <!-- Compact User Profile Dropdown -->
+          <div id="user-profile-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 rounded-2xl glass-panel border border-white/10 p-3 shadow-2xl z-50 modal-enter bg-slate-950/95 backdrop-blur-2xl">
+            <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+              <img id="dropdown-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-10 h-10 rounded-full ring-2 ring-emerald-500/50 object-cover shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div id="dropdown-user-name" class="text-xs font-bold text-white truncate">Aarav Sharma</div>
+                <div id="dropdown-user-email" class="text-[10px] text-slate-400 truncate">aarav.sharma@cse.iitb.ac.in</div>
+                <div class="mt-1 flex items-center gap-1">
+                  <span id="dropdown-user-badge" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Student</span>
+                  <span id="dropdown-user-institution" class="text-[10px] text-slate-400 truncate">IIT Bombay</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="py-2 space-y-1">
+              <button id="nav-btn-profile" onclick="switchTab('profile'); toggleUserDropdown(false);" class="w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors text-left">
+                <i data-lucide="user-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Profile</span>
+              </button>
+              <button onclick="openDemoModal(); toggleUserDropdown(false);" class="w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors text-left">
+                <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span>Switch Persona (Demo Mode)</span>
+              </button>
+              <button onclick="switchTab('kanban'); toggleUserDropdown(false);" class="w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors text-left">
+                <i data-lucide="check-square" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span>My Task Milestones</span>
+              </button>
+              <div class="pt-1.5 mt-1.5 border-t border-white/10">
+                <button onclick="handleLogout(); toggleUserDropdown(false);" class="w-full px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-300 hover:text-rose-100 hover:bg-rose-950/40 flex items-center gap-2 transition-colors text-left">
+                  <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Button ("Submit Project") with Vibrant Emerald Gradient -->
+        <button id="btn-header-submit-project" onclick="openNewProjectModal()" class="h-10 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] transition-transform px-3.5 sm:px-4 rounded-xl flex items-center gap-2 cursor-pointer border border-emerald-400/20 shrink-0">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-white"></i>
+          <span class="hidden sm:inline">Submit Project</span>
+          <span class="sm:hidden">New</span>
+        </button>
+
+        <!-- Animated Hamburger Button (Menu / X Toggle) -->
+        <button id="nav-hamburger-btn" onclick="toggleMobileDrawer()" class="h-10 w-10 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-slate-300 hover:text-white transition-all flex items-center justify-center cursor-pointer shrink-0" aria-label="Toggle Navigation Menu" title="Open Navigation Portals">
+          <i data-lucide="menu" id="hamburger-icon" class="w-5 h-5 transition-transform duration-200"></i>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Slide-Out Glassmorphism Drawer (Responsive Hamburger Menu) -->
+  <div id="mobile-nav-drawer" class="fixed inset-0 z-50 hidden transition-opacity duration-300">
+    <!-- Backdrop Blur Overlay -->
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300" onclick="toggleMobileDrawer(false)"></div>
+
+    <!-- Slide-Over Drawer Panel -->
+    <div class="fixed inset-y-0 right-0 w-full max-w-sm bg-slate-950/95 border-l border-white/10 backdrop-blur-2xl p-6 flex flex-col justify-between shadow-2xl z-50 transform transition-transform duration-300 ease-out">
+      
+      <!-- Top: Brand Header & Close Button -->
+      <div>
+        <div class="flex items-center justify-between pb-5 border-b border-white/10">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
+              <i data-lucide="sparkles" class="w-4 h-4 text-slate-950 stroke-[2.5]"></i>
+            </div>
+            <span class="text-lg font-black tracking-tight text-white font-heading">
+              PRO-<span class="gradient-text-emerald">VERSED</span>
+            </span>
+          </div>
+          <button onclick="toggleMobileDrawer(false)" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Categorized Drawer Navigation Links -->
+        <div class="mt-6 space-y-6">
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Primary Hubs</div>
+            <div class="space-y-1">
+              <button onclick="switchTab('explore'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="compass" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Explore Projects</span>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600 group-hover:text-slate-400"></i>
+              </button>
+              <button id="drawer-btn-profile" onclick="switchTab('profile'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="user-circle" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Profile</span>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600 group-hover:text-slate-400"></i>
+              </button>
+              <button onclick="switchTab('kanban'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="layout-grid" class="w-4 h-4 text-cyan-400"></i>
+                  <span>Task Board</span>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600 group-hover:text-slate-400"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Secondary Innovation Portals</div>
+            <div class="space-y-1">
+              <button id="drawer-btn-plagiarism" onclick="switchTab('plagiarism'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Originality Check</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">AI Scanner</span>
+              </button>
+              <button id="drawer-btn-project-store" onclick="switchTab('projectStore'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="folder-git-2" class="w-4 h-4 text-cyan-400"></i>
+                  <span>Project Store</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-normal">Software IP</span>
+              </button>
+              <button id="drawer-btn-hardware-store" onclick="switchTab('hardwareStore'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Hardware Store</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">Hardware</span>
+              </button>
+              <button id="drawer-btn-deals" onclick="switchTab('deals'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-amber-400"></i>
+                  <span>Grants & Funding</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-normal">Industry</span>
+              </button>
+              <button id="drawer-btn-meeting" onclick="switchTab('meeting'); toggleMobileDrawer(false);" class="w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-slate-200 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <div class="flex items-center space-x-3">
+                  <i data-lucide="video" class="w-4 h-4 text-indigo-400"></i>
+                  <span>Virtual Rooms</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-normal">WebRTC</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: User Persona Quick Switch & CTA -->
+      <div class="pt-5 border-t border-white/10 space-y-3">
+        <button onclick="openDemoModal(); toggleMobileDrawer(false);" class="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center space-x-3 text-left transition-colors cursor-pointer">
+          <img id="drawer-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-9 h-9 rounded-full ring-2 ring-emerald-500/40 object-cover" />
+          <div class="min-w-0 flex-1">
+            <div id="drawer-user-name" class="text-xs font-bold text-white truncate">Aarav Sharma</div>
+            <div id="drawer-user-role" class="text-[10px] text-emerald-400 font-medium">Student Creator</div>
+          </div>
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+        <button id="btn-drawer-submit-project" onclick="openNewProjectModal(); toggleMobileDrawer(false);" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2 cursor-pointer">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Submit New Project</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW: SECURE AUTHENTICATION (LOGIN & REGISTRATION) -->
+    <!-- ========================================================================= -->
+    <section id="view-login" class="hidden auth-container py-4">
+      <div class="w-full max-w-md mx-auto space-y-6">
+        
+        <!-- Auth Header -->
+        <div class="text-center space-y-3">
+          <!-- App Logo -->
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-1 ring-white/20 animate-levitate mx-auto">
+            <i data-lucide="sparkles" class="w-6 h-6 text-slate-950 stroke-[2.5]"></i>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white font-heading tracking-tight">
+            Sign In to PRO-<span class="gradient-text-emerald">VERSED</span>
+          </h2>
+        </div>
+
+        <!-- Main Auth Card -->
+        <div class="auth-card p-6 sm:p-8 rounded-3xl space-y-6 border border-emerald-500/20 shadow-2xl relative overflow-hidden">
+          
+          <!-- Mode Tabs: Sign In / Register -->
+          <div class="flex p-1 bg-slate-950/80 rounded-xl border border-white/10 text-xs font-semibold">
+            <button id="auth-tab-btn-login" onclick="setAuthMode('login')" class="flex-1 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all text-center">
+              Sign In
+            </button>
+            <button id="auth-tab-btn-register" onclick="setAuthMode('register')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition-all text-center">
+              Create Account
+            </button>
+          </div>
+
+          <!-- Unified Server-Side Generic Error Alert -->
+          <div id="login-error-alert" class="hidden p-3.5 rounded-2xl bg-rose-950/70 border border-rose-500/40 text-rose-200 text-xs flex items-start space-x-3 backdrop-blur-xl shake-error">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+              <div class="font-bold text-rose-300">Authentication Failed</div>
+              <div id="login-error-text" class="text-rose-200/90 mt-0.5">Invalid email or password. Please try again.</div>
+            </div>
+            <button onclick="dismissLoginAlert('login-error-alert')" class="text-rose-400 hover:text-rose-200">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Account Lockout Alert with Real-Time Countdown -->
+          <div id="login-lockout-alert" class="hidden p-4 rounded-2xl bg-amber-950/80 border border-amber-500/50 text-amber-200 text-xs space-y-2 backdrop-blur-xl">
+            <div class="flex items-start space-x-3">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400 shrink-0"></i>
+              <div class="flex-1">
+                <div class="font-bold text-amber-300 text-sm">Account Temporarily Locked</div>
+                <div class="text-amber-200/90 text-[11px] mt-0.5">
+                  5 consecutive failed attempts triggered a security lockout.
+                </div>
+              </div>
+            </div>
+            <div class="countdown-box p-2.5 rounded-xl flex items-center justify-between font-mono text-xs text-amber-300">
+              <span>Time Until Auto-Unlock:</span>
+              <span id="lockout-countdown" class="font-bold text-amber-200 tracking-wider">03:00:00</span>
+            </div>
+          </div>
+
+          <!-- Rate Limit Warning Banner (HTTP 429) -->
+          <div id="login-ratelimit-alert" class="hidden p-3.5 rounded-2xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-200 text-xs flex items-start space-x-3 backdrop-blur-xl">
+            <i data-lucide="clock" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+              <div class="font-bold text-cyan-300">Rate Limit Enforced</div>
+              <div id="login-ratelimit-text" class="text-cyan-200/90 mt-0.5">Maximum 10 login attempts per hour allowed. Please wait before retrying.</div>
+            </div>
+          </div>
+
+          <!-- Sign In Form -->
+          <form id="auth-login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span>Institutional Email / Gmail</span>
+                <span class="text-[10px] text-slate-500">.ac.in / .edu / @gmail.com</span>
+              </label>
+              <div class="relative">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                  id="login-email" 
+                  type="email" 
+                  required 
+                  placeholder="name@gmail.com" 
+                  class="w-full pl-10 pr-4 py-2.5 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition-all"
+                  autocomplete="username"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span>Password</span>
+                <span class="text-[10px] text-emerald-400/80">e.g. Password@123</span>
+              </label>
+              <div class="relative">
+                <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                  id="login-password" 
+                  type="password" 
+                  required 
+                  placeholder="••••••••••••" 
+                  class="w-full pl-10 pr-10 py-2.5 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition-all"
+                  autocomplete="current-password"
+                />
+                <button 
+                  type="button" 
+                  onclick="togglePasswordVisibility('login-password', this)" 
+                  class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  tabindex="-1"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer select-none">
+                <input id="login-remember" type="checkbox" class="w-3.5 h-3.5 rounded bg-slate-900 border-white/20 text-emerald-500 focus:ring-0 focus:ring-offset-0" />
+                <span>Remember session (30 days)</span>
+              </label>
+              <button 
+                type="button" 
+                onclick="openForgotPasswordModal()" 
+                class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition-all cursor-pointer font-medium"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <button 
+              id="login-submit-btn" 
+              type="submit" 
+              class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer mt-2"
+            >
+              <i data-lucide="log-in" class="w-4 h-4 stroke-[2.5]"></i>
+              <span id="login-submit-btn-text">Authenticate Session</span>
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="auth-register-form" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3.5">
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-slate-300">Full Name</label>
+              <input id="reg-name" type="text" required placeholder="e.g. Aarav Sharma" class="w-full px-3.5 py-2 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500" />
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-slate-300">Email Address (Institutional / Gmail)</label>
+                <span id="reg-email-verified-badge" class="hidden text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                  <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i>
+                  <span>Verified</span>
+                </span>
+              </div>
+              <div class="relative flex items-center">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                  id="reg-email" 
+                  type="email" 
+                  required 
+                  placeholder="name@gmail.com" 
+                  class="w-full pl-10 pr-24 py-2 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition-all" 
+                />
+                <button 
+                  id="reg-send-otp-btn" 
+                  type="button" 
+                  onclick="handleSendOtp()" 
+                  class="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold transition-all cursor-pointer flex items-center space-x-1"
+                >
+                  <span id="reg-send-otp-text">Send OTP</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- OTP Verification Row (Revealed when OTP is requested) -->
+            <div id="reg-otp-group" class="hidden space-y-1.5 p-3 rounded-2xl bg-emerald-950/30 border border-emerald-500/25 transition-all">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-emerald-300 flex items-center space-x-1">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Enter 6-Digit OTP Code</span>
+                </label>
+                <span id="reg-otp-timer" class="text-[10px] text-slate-400">Valid for 10 mins</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2 relative">
+                  <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="reg-otp" 
+                    type="text" 
+                    maxlength="6" 
+                    placeholder="123456" 
+                    class="w-full pl-8 pr-3 py-1.5 rounded-xl glass-input text-xs font-mono font-bold tracking-widest text-emerald-300 text-center placeholder:text-slate-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/40 transition-all"
+                  />
+                </div>
+                <button 
+                  id="reg-verify-otp-btn" 
+                  type="button" 
+                  onclick="handleVerifyOtp()" 
+                  class="w-full py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center space-x-1 cursor-pointer"
+                >
+                  <span id="reg-verify-otp-text">Verify</span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between pt-0.5 text-[10px]">
+                <span class="text-slate-400">Didn't receive code?</span>
+                <button 
+                  id="reg-resend-otp-btn" 
+                  type="button" 
+                  onclick="handleSendOtp()" 
+                  class="text-emerald-400 hover:text-emerald-300 hover:underline font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Resend OTP
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span>Password</span>
+                <span class="text-[10px] text-slate-400">Min 8 chars, 1 upper, 1 num</span>
+              </label>
+              <input id="reg-password" type="password" required placeholder="••••••••••••" class="w-full px-3.5 py-2 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-300">Ecosystem Role</label>
+                <select id="reg-role" class="w-full px-2.5 py-2 rounded-xl glass-input text-xs font-medium text-white bg-slate-900">
+                  <option value="student">Student Innovator</option>
+                  <option value="faculty">Faculty Mentor</option>
+                  <option value="spoc">Institutional SPOC</option>
+                  <option value="industrialist">Corporate Partner</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-300">College / Company</label>
+                <input id="reg-college" type="text" placeholder="IIT Bombay / Tata Motors" class="w-full px-3.5 py-2 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500" />
+              </div>
+            </div>
+
+            <button 
+              id="reg-submit-btn" 
+              type="submit" 
+              class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center space-x-2 cursor-pointer mt-2"
+            >
+              <i data-lucide="user-plus" class="w-4 h-4 stroke-[2.5]"></i>
+              <span>Create Account & Sign In</span>
+            </button>
+          </form>
+
+          <!-- 1-Click Fast Demo Credentials Pill Switcher -->
+          <div class="pt-4 border-t border-white/10 space-y-2.5">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>Quick Demo Sign-In (1-Click)</span>
+              <span class="text-emerald-400/80">Pre-seeded Personas</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              <button onclick="fillAndLoginPersona('usr_student_1', 'aarav@cse.iitb.ac.in')" class="p-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/10 hover:border-emerald-500/40 border border-white/10 text-left transition-all group cursor-pointer">
+                <div class="text-[11px] font-bold text-white group-hover:text-emerald-300 truncate">Aarav (Student)</div>
+                <div class="text-[9px] text-slate-400 truncate">IIT Bombay</div>
+              </button>
+              <button onclick="fillAndLoginPersona('usr_faculty_1', 'sunita.raman@iisc.ac.in')" class="p-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/10 hover:border-emerald-500/40 border border-white/10 text-left transition-all group cursor-pointer">
+                <div class="text-[11px] font-bold text-white group-hover:text-emerald-300 truncate">Dr. Sunita (Faculty)</div>
+                <div class="text-[9px] text-slate-400 truncate">IISc Bangalore</div>
+              </button>
+              <button onclick="fillAndLoginPersona('usr_spoc_1', 'rk.mukherjee@nitt.edu.in')" class="p-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/10 hover:border-emerald-500/40 border border-white/10 text-left transition-all group cursor-pointer">
+                <div class="text-[11px] font-bold text-white group-hover:text-emerald-300 truncate">Prof. Mukherjee</div>
+                <div class="text-[9px] text-slate-400 truncate">NIT Trichy SPOC</div>
+              </button>
+              <button onclick="fillAndLoginPersona('usr_industrialist_1', 'vikram.s@tataelxsi.com')" class="p-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/10 hover:border-emerald-500/40 border border-white/10 text-left transition-all group cursor-pointer">
+                <div class="text-[11px] font-bold text-white group-hover:text-emerald-300 truncate">Vikram (Investor)</div>
+                <div class="text-[9px] text-slate-400 truncate">Tata Elxsi</div>
+              </button>
+              <button onclick="fillAndLoginPersona('usr_admin_1', 'admin@proversed.gov.in')" class="p-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/10 hover:border-emerald-500/40 border border-white/10 text-left transition-all group cursor-pointer col-span-2 sm:col-span-2">
+                <div class="text-[11px] font-bold text-white group-hover:text-emerald-300 truncate">Dr. Ananya (National Admin)</div>
+                <div class="text-[9px] text-slate-400 truncate">Ministry of Education Portal</div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW: CLEAN ANALYTICS DASHBOARD (ACCESSIBLE ONLY AFTER AUTHENTICATION) -->
+    <!-- ========================================================================= -->
+    <section id="view-dashboard" class="hidden space-y-8">
+      
+      <!-- Top Hero Profile Card -->
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.12] dot-pattern relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          
+          <div class="flex items-center space-x-4 sm:space-x-5">
+            <div class="relative">
+              <img id="dash-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ring-2 ring-emerald-500/50 bg-slate-900 object-cover shadow-xl" />
+              <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full ring-2 ring-slate-950"></span>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 id="dash-user-name" class="text-2xl sm:text-3xl font-black text-white font-heading">Aarav Sharma</h1>
+                <span id="dash-user-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Student</span>
+                <span id="dash-user-verified" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Verified Academic</span>
+              </div>
+              <p id="dash-user-email" class="text-xs sm:text-sm text-slate-400 font-mono mt-0.5">aarav.sharma@cse.iitb.ac.in</p>
+              <p id="dash-user-college" class="text-xs text-slate-300 mt-1 font-medium">IIT Bombay</p>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="switchTab('explore')" class="btn-glow-primary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 cursor-pointer">
+              <i data-lucide="compass" class="w-4 h-4"></i>
+              <span>Explore Projects</span>
+            </button>
+            <button onclick="switchTab('kanban')" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-slate-200 flex items-center space-x-2 transition-colors cursor-pointer">
+              <i data-lucide="layout-grid" class="w-4 h-4 text-cyan-400"></i>
+              <span>Task Board</span>
+            </button>
+            <button onclick="handleLogout()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-rose-300 hover:text-white flex items-center space-x-2 transition-colors cursor-pointer">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span>Sign Out</span>
+            </button>
+          </div>
+
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- Aggregated National Innovation Metrics Grid (4 Clean Top KPI Cards) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Total Registered Projects</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="dash-metric-projects" class="text-3xl font-black text-white font-heading">540+</div>
+          <div class="text-[11px] text-emerald-400 font-semibold flex items-center space-x-1">
+            <i data-lucide="trending-up" class="w-3 h-3"></i>
+            <span>+12% New Innovations this month</span>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Total Industry Funding</span>
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+              <i data-lucide="badge-indian-rupee" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="dash-metric-dealflow" class="text-3xl font-black text-white font-heading">₹48,50,000</div>
+          <div class="text-[11px] text-cyan-400 font-semibold">Across grants, licensing & hiring</div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Working Prototypes Ready</span>
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="dash-metric-prototypes" class="text-3xl font-black text-white font-heading">186</div>
+          <div class="text-[11px] text-indigo-400 font-semibold">Hardware & IoT systems ready</div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Partner Universities</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="dash-metric-institutions" class="text-3xl font-black text-white font-heading">45+</div>
+          <div class="text-[11px] text-amber-400 font-semibold">IITs, NITs, BITS, IISc & State Col.</div>
+        </div>
+      </div>
+
+      <!-- 4 High-Impact Analytics Chart Panels (2-Column Desktop Grid with fixed h-72) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4">
+          <h3 class="text-base font-bold text-white font-heading flex items-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+            <span>Top Technologies Used in Student Projects</span>
+          </h3>
+          <div class="relative w-full h-72 min-h-[18rem]"><canvas id="chart-tech-stack"></canvas></div>
+        </div>
+
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4">
+          <h3 class="text-base font-bold text-white font-heading flex items-center space-x-2">
+            <i data-lucide="git-merge" class="w-4 h-4 text-cyan-400"></i>
+            <span>Project Development Progress Funnel</span>
+          </h3>
+          <div class="relative w-full h-72 min-h-[18rem]"><canvas id="chart-lifecycle"></canvas></div>
+        </div>
+
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4">
+          <h3 class="text-base font-bold text-white font-heading flex items-center space-x-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-400"></i>
+            <span>Innovation Domains Breakdown</span>
+          </h3>
+          <div class="relative w-full h-72 min-h-[18rem]"><canvas id="chart-domains"></canvas></div>
+        </div>
+
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4">
+          <h3 class="text-base font-bold text-white font-heading flex items-center space-x-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Originality Scores Distribution</span>
+          </h3>
+          <div class="relative w-full h-72 min-h-[18rem]"><canvas id="chart-compliance"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Quick Launch Portals -->
+      <div class="glass-panel p-6 sm:p-7 rounded-2xl border border-white/10 space-y-4">
+        <h3 class="text-base font-bold text-white">Innovation Command Center</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button onclick="switchTab('explore')" class="p-4 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 hover:border-emerald-500/40 text-left transition-all group cursor-pointer space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+              <i data-lucide="compass" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white group-hover:text-emerald-300">National Project Registry</div>
+            <p class="text-xs text-slate-400">Search verified student hardware, software, and deep-tech models.</p>
+          </button>
+          
+          <button onclick="switchTab('kanban')" class="p-4 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 hover:border-cyan-500/40 text-left transition-all group cursor-pointer space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+              <i data-lucide="layout-grid" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white group-hover:text-cyan-300">Kanban Milestone Tracker</div>
+            <p class="text-xs text-slate-400">Drag & drop project task boards with faculty mentor audits.</p>
+          </button>
+
+          <button onclick="switchTab('plagiarism')" class="p-4 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 hover:border-indigo-500/40 text-left transition-all group cursor-pointer space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white group-hover:text-indigo-300">Originality & IP Scanner</div>
+            <p class="text-xs text-slate-400">TF-IDF & Cosine Similarity audit against national project corpus.</p>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW: 404 PAGE (ORBIT ROUTE NOT FOUND & DIAGNOSTICS) -->
+    <!-- ========================================================================= -->
+    <section id="view-404" class="hidden py-12 flex flex-col items-center justify-center text-center space-y-8">
+      
+      <!-- 404 Emblem with Zero-G Orbit Aura -->
+      <div class="relative">
+        <div class="text-7xl sm:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-emerald-400 to-purple-500 font-heading tracking-widest orbit-404-glitch select-none">
+          404
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-32 h-32 sm:w-48 sm:h-48 rounded-full border border-cyan-500/30 animate-spin" style="animation-duration: 18s;"></div>
+          <div class="w-44 h-44 sm:w-64 sm:h-64 rounded-full border border-purple-500/20 animate-spin" style="animation-duration: 25s; animation-direction: reverse;"></div>
+        </div>
+      </div>
+
+      <div class="max-w-md space-y-3">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+          <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+          <span>ORBIT TRAJECTORY UNRESOLVED</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black text-white font-heading">
+          Lost in Zero-G Space
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-300">
+          The coordinate, requested route, or network resource does not exist in our galaxy.
+        </p>
+      </div>
+
+      <!-- Live Diagnostics Telemetry Box -->
+      <div class="w-full max-w-lg glass-panel p-5 rounded-2xl border border-white/10 text-left text-xs font-mono space-y-2 bg-slate-950/80">
+        <div class="flex items-center justify-between text-slate-400 pb-2 border-b border-white/10">
+          <span class="font-bold flex items-center space-x-1.5">
+            <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Telemetry Diagnostics</span>
+          </span>
+          <span id="diag-network-badge" class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-sans font-bold">
+            ONLINE
+          </span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span class="text-slate-500">Requested Path:</span>
+          <span id="diag-url-path" class="text-cyan-300 truncate max-w-[240px]">/unknown-route</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span class="text-slate-500">API Status:</span>
+          <span id="diag-api-status" class="text-emerald-400">Operational (Healthy)</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span class="text-slate-500">Error Code:</span>
+          <span class="text-rose-400 font-bold">ERR_NOT_FOUND_404</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <button onclick="switchTab('dashboard')" class="btn-glow-primary px-6 py-3 rounded-xl text-xs font-bold flex items-center space-x-2 cursor-pointer">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Return to Dashboard</span>
+        </button>
+        <button onclick="switchTab('login')" class="px-5 py-3 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 flex items-center space-x-2 transition-colors cursor-pointer">
+          <i data-lucide="log-in" class="w-4 h-4 text-emerald-400"></i>
+          <span>Go to Sign In</span>
+        </button>
+        <button onclick="triggerAntiGravity()" class="px-4 py-3 rounded-xl text-xs font-semibold bg-purple-950/50 hover:bg-purple-900 border border-purple-500/30 text-purple-300 flex items-center space-x-2 transition-colors cursor-pointer">
+          <i data-lucide="zap" class="w-4 h-4 text-purple-400"></i>
+          <span>Anti-Gravity Physics</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: EXPLORE PROJECTS & DISCOVERY HUB -->
+    <!-- ========================================================================= -->
+    <section id="view-explore" class="space-y-8">
+      
+      <!-- Cinematic Hero Banner -->
+      <div class="relative overflow-hidden rounded-3xl glass-panel p-8 sm:p-10 border border-white/[0.12] dot-pattern">
+        <div class="relative z-10 max-w-3xl space-y-4">
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+            <span>National Student Innovation Repository</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-heading leading-tight">
+            Discover, Fund & Build <br />
+            <span class="gradient-text-emerald">Next-Gen Student Innovations</span>
+          </h1>
+          <p class="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
+            The official platform connecting university student creators, faculty mentors, and industry sponsors across Bharat. Explore verified hardware prototypes, AI models, and research projects.
+          </p>
+          
+          <!-- Key Metric Badges -->
+          <div class="pt-3 flex flex-wrap gap-4 text-xs font-semibold text-slate-200">
+            <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+              <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+              <span>540+ Verified Student Innovations</span>
+            </div>
+            <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+              <i data-lucide="badge-indian-rupee" class="w-4 h-4 text-emerald-400"></i>
+              <span>₹48.5L+ Industry Grants Granted</span>
+            </div>
+            <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+              <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i>
+              <span>98.4% Average Originality Score</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-4">
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+            <input 
+              id="search-input" 
+              type="text" 
+              placeholder="Search by project name, keywords, college, tech stack..." 
+              class="w-full pl-12 pr-4 py-3.5 rounded-xl glass-input placeholder:text-slate-500 text-sm font-medium"
+              oninput="debounceSearch()"
+            />
+          </div>
+          <button id="btn-explore-submit-project" onclick="openNewProjectModal()" class="btn-glow-primary px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 shrink-0 cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Submit New Project</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Innovation Domain</label>
+            <select id="filter-domain" onchange="loadProjects()" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs font-medium text-slate-200">
+              <option value="">All Domains</option>
+              <option value="AI & Robotics">AI & Robotics</option>
+              <option value="Green Tech & Energy">Green Tech & Energy</option>
+              <option value="Healthcare & MedTech">Healthcare & MedTech</option>
+              <option value="Smart Cities & IoT">Smart Cities & IoT</option>
+              <option value="FinTech & Security">FinTech & Security</option>
+              <option value="Aerospace & Defense">Aerospace & Defense</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Project Type</label>
+            <select id="filter-category" onchange="loadProjects()" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs font-medium text-slate-200">
+              <option value="">All Types</option>
+              <option value="Hardware Prototype">Hardware Prototype</option>
+              <option value="Software IP / Model">Software IP / Model</option>
+              <option value="Hybrid (IoT / Embedded)">Hybrid (IoT / Embedded)</option>
+              <option value="Research & Patent Pending">Research & Patent Pending</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Progress Stage</label>
+            <select id="filter-lifecycle" onchange="loadProjects()" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs font-medium text-slate-200">
+              <option value="">All Stages</option>
+              <option value="Ideation">1. Idea Phase</option>
+              <option value="In Development">2. In Development</option>
+              <option value="Prototype Ready">3. Working Prototype Ready</option>
+              <option value="Completed">4. Completed</option>
+              <option value="Research Published">5. Research Published</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Institution / College</label>
+            <select id="filter-college" onchange="loadProjects()" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs font-medium text-slate-200">
+              <option value="">All Colleges</option>
+              <option value="IIT Bombay">IIT Bombay</option>
+              <option value="IIT Madras">IIT Madras</option>
+              <option value="BITS Pilani">BITS Pilani</option>
+              <option value="IISc Bangalore">IISc Bangalore</option>
+              <option value="COEP Technological University">COEP Tech Pune</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/[0.05] text-xs text-slate-400">
+          <div class="flex items-center space-x-2">
+            <span>Verified Results:</span>
+            <span id="projects-count-badge" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">5 projects</span>
+          </div>
+          <span class="text-slate-400 text-xs">✨ Click any project card to view parts list, live tasks, IPFS CIDs, and grant offers</span>
+        </div>
+
+      </div>
+
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: TASK & MILESTONE BOARD -->
+    <!-- ========================================================================= -->
+    <section id="view-kanban" class="hidden space-y-8">
+      
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.12] space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-2">
+              <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
+              <span>Project Task & Milestone Board</span>
+            </div>
+            <h2 id="kanban-project-title" class="text-2xl sm:text-3xl font-black text-white font-heading">
+              KrishiDrishti: Autonomous Agri-Drone with Edge-AI
+            </h2>
+            <p id="kanban-project-team" class="text-sm text-slate-300 mt-1">
+              Lead: Aarav Sharma • Mentor: Dr. Sunita Verma • IIT Bombay
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <div class="min-w-[240px]">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Active Project</label>
+              <select id="kanban-project-select" onchange="changeKanbanProject()" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs font-bold text-emerald-300 border-emerald-500/40">
+              </select>
+            </div>
+            <div class="pt-5 flex items-center space-x-2">
+              <button onclick="openNewTaskModal()" class="btn-glow-primary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 cursor-pointer shrink-0">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Add Task</span>
+              </button>
+              <button onclick="launchMeetingForActiveProject()" class="btn-glow-secondary px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shrink-0">
+                <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i>
+                <span>Review Call</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] gap-3">
+          <div class="flex items-center space-x-3">
+            <span class="text-xs font-bold text-slate-300">Project Stage:</span>
+            <span id="kanban-project-stage" class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold">
+              Prototype Ready
+            </span>
+          </div>
+          <div class="text-xs text-slate-400 flex items-center space-x-2">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>Faculty mentors can review & approve tasks in the "Under Review" column.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div class="glass-panel rounded-2xl p-4 border border-white/[0.08] flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-3 h-3 rounded-full bg-slate-400"></div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">1. To Do</h3>
+            </div>
+            <span id="count-backlog" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-xs font-bold">0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mb-3">Planned tasks ready to start</p>
+          <div id="col-backlog" class="space-y-3 flex-1 task-column-body max-h-[calc(100vh-280px)] overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-white/[0.08] flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-3 h-3 rounded-full bg-cyan-400 pulse-dot"></div>
+              <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider">2. In Progress</h3>
+            </div>
+            <span id="count-in_progress" class="px-2 py-0.5 rounded-md bg-cyan-950/60 text-cyan-300 text-xs font-bold border border-cyan-800/50">0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mb-3">Tasks actively being worked on</p>
+          <div id="col-in_progress" class="space-y-3 flex-1 task-column-body max-h-[calc(100vh-280px)] overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-indigo-500/20 bg-indigo-950/20 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-indigo-500/20">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-3 h-3 rounded-full bg-indigo-400"></div>
+              <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wider">3. Under Review</h3>
+            </div>
+            <span id="count-faculty_audit" class="px-2 py-0.5 rounded-md bg-indigo-900/60 text-indigo-300 text-xs font-bold border border-indigo-700/50">0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mb-3">Awaiting faculty mentor verification</p>
+          <div id="col-faculty_audit" class="space-y-3 flex-1 task-column-body max-h-[calc(100vh-280px)] overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/20 bg-emerald-950/10 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-emerald-500/20">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+              <h3 class="text-sm font-bold text-emerald-300 uppercase tracking-wider">4. Completed</h3>
+            </div>
+            <span id="count-completed" class="px-2 py-0.5 rounded-md bg-emerald-900/60 text-emerald-300 text-xs font-bold border border-emerald-700/50">0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mb-3">Verified and finished milestones</p>
+          <div id="col-completed" class="space-y-3 flex-1 task-column-body max-h-[calc(100vh-280px)] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: ORIGINALITY & SIMILARITY CHECKER -->
+    <!-- ========================================================================= -->
+    <section id="view-plagiarism" class="hidden space-y-8">
+      
+      <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-white/[0.12] relative overflow-hidden">
+        <div class="max-w-3xl space-y-3">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>National Innovation Quality Engine</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-black text-white font-heading">
+            Smart Originality & Similarity Scanner
+          </h2>
+          <p class="text-base text-slate-300">
+            Check your project summary, research abstract, or technical documentation against our nationwide student project repository before publishing or submitting for patents.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-7 glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-white font-heading flex items-center space-x-2">
+              <i data-lucide="file-search" class="w-5 h-5 text-emerald-400"></i>
+              <span>Content Scanner</span>
+            </h3>
+            <span class="text-xs text-slate-400">Instant AI Comparison</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Project Title (Optional)</label>
+            <input id="plag-check-title" type="text" placeholder="e.g. Autonomous Solar Drone with Thermal Camera" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-slate-300">Project Abstract / Technical Summary</label>
+              <div class="flex items-center space-x-2">
+                <button type="button" onclick="loadSamplePlagiarism('bad')" class="text-[11px] font-semibold text-rose-400 hover:text-rose-300 underline cursor-pointer">
+                  🧪 Test High-Overlap Sample
+                </button>
+                <span class="text-slate-600">•</span>
+                <button type="button" onclick="loadSamplePlagiarism('good')" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 underline cursor-pointer">
+                  ✨ Test Unique Sample
+                </button>
+              </div>
+            </div>
+            <textarea id="plag-check-abstract" rows="7" placeholder="Paste your technical abstract, project methodology, or design summary here..." class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+          </div>
+
+          <button id="btn-run-plagiarism" onclick="runPlagiarismAudit()" class="w-full btn-glow-primary py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-lg">
+            <i data-lucide="scan" class="w-4 h-4"></i>
+            <span>Scan for Originality & Overlap</span>
+          </button>
+        </div>
+
+        <div class="lg:col-span-5 glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] flex flex-col justify-between space-y-6">
+          <div>
+            <h3 class="text-lg font-bold text-white font-heading mb-4 flex items-center space-x-2">
+              <i data-lucide="activity" class="w-5 h-5 text-cyan-400"></i>
+              <span>Originality Score</span>
+            </h3>
+
+            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center space-y-3">
+              <div class="text-5xl font-black gradient-text-emerald font-heading" id="plag-score-display">--%</div>
+              <div class="text-xs font-semibold text-slate-300" id="plag-status-badge">Awaiting scan input...</div>
+              <p class="text-xs text-slate-400 leading-relaxed" id="plag-summary-text">
+                Enter your text and click scan to calculate the originality index against national archives.
+              </p>
+            </div>
+
+            <div class="mt-6 space-y-3">
+              <div class="flex items-center justify-between text-xs py-2 border-b border-white/[0.06]">
+                <span class="text-slate-400">Highest Similar Project Match:</span>
+                <span id="plag-highest-title" class="font-bold text-slate-200 truncate max-w-[180px]">None</span>
+              </div>
+              <div class="flex items-center justify-between text-xs py-2 border-b border-white/[0.06]">
+                <span class="text-slate-400">Similarity Percentage:</span>
+                <span id="plag-sim-val" class="font-bold text-slate-200">0%</span>
+              </div>
+              <div class="flex items-center justify-between text-xs py-2 border-b border-white/[0.06]">
+                <span class="text-slate-400">Audited Tokens / Words:</span>
+                <span id="plag-tokens-val" class="font-bold text-slate-200">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-[11px] text-emerald-300">
+            🛡️ <strong>National Standard:</strong> Projects with 85%+ Originality are eligible for immediate faculty sign-off and industry grant proposals.
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-white font-heading flex items-center space-x-2">
+            <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
+            <span>Recent Originality Check History</span>
+          </h3>
+          <span class="text-xs text-slate-400">National Innovation Ledger</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 uppercase tracking-wider border-b border-white/[0.08]">
+              <tr>
+                <th class="py-3 px-4">Audit ID</th>
+                <th class="py-3 px-4">Project Title</th>
+                <th class="py-3 px-4">Originality</th>
+                <th class="py-3 px-4">Max Match</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="plag-audit-table-body" class="divide-y divide-white/[0.05] text-slate-300"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4A: PROJECT & SOFTWARE IP STORE -->
+    <!-- ========================================================================= -->
+    <section id="view-project-store" class="hidden space-y-8">
+      
+      <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-white/[0.12] space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold">
+              <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i>
+              <span>Software IP & Commercial Licensing</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black text-white font-heading">
+              Project & Software IP Store
+            </h2>
+            <p class="text-base text-slate-300 max-w-2xl">
+              Buy, sell, and license student software projects, AI/ML models, algorithms, and research codebases with Safe Protection.
+            </p>
+          </div>
+          <button onclick="openNewBazaarModal('software')" class="btn-glow-primary px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shrink-0">
+            <i data-lucide="code-2" class="w-4 h-4"></i>
+            <span>List Project / Software IP</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-4 border-t border-white/[0.08]">
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider mb-1">Step 1: License Requested</div>
+            <p class="text-xs text-slate-300">Payment safely locked in digital protection.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">Step 2: Codebase Audited</div>
+            <p class="text-xs text-slate-300">Originality, integrity & reproducibility cleared.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-purple-400 uppercase tracking-wider mb-1">Step 3: Verified Transfer</div>
+            <p class="text-xs text-slate-300">Git repository & model artifacts securely transferred.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1">Step 4: Royalty Released</div>
+            <p class="text-xs text-slate-300">Funds disbursed directly to the student developers.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel p-4 rounded-2xl border border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterProjectStore('all')" class="project-cat-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-cyan-600/30 text-cyan-300 border border-cyan-500/40">All Projects</button>
+          <button onclick="filterProjectStore('Software IP & Commercial License')" class="project-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">Software IP & Commercial License</button>
+          <button onclick="filterProjectStore('AI/ML Models')" class="project-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">AI/ML Models</button>
+          <button onclick="filterProjectStore('Full-Stack Web/Mobile Systems')" class="project-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">Full-Stack Web/Mobile Systems</button>
+        </div>
+        <div class="text-xs text-slate-400">
+          🛡️ Dual-Use & Commercial License Clearance
+        </div>
+      </div>
+
+      <div id="project-store-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4B: HARDWARE & COMPONENT STORE -->
+    <!-- ========================================================================= -->
+    <section id="view-hardware-store" class="hidden space-y-8">
+      
+      <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-white/[0.12] space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+              <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+              <span>Institutional Hardware Clearance & Escrow</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black text-white font-heading">
+              Hardware & Component Store
+            </h2>
+            <p class="text-base text-slate-300 max-w-2xl">
+              Buy and sell assembled hardware prototypes, IoT devices, custom PCBs, and surplus lab BOM components with Safe Buyer Protection.
+            </p>
+          </div>
+          <button onclick="openNewBazaarModal('hardware')" class="btn-glow-primary px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shrink-0">
+            <i data-lucide="tag" class="w-4 h-4"></i>
+            <span>List Hardware Item</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-4 border-t border-white/[0.08]">
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1">Step 1: Order Placed</div>
+            <p class="text-xs text-slate-300">Payment safely locked in platform protection.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider mb-1">Step 2: College Verified</div>
+            <p class="text-xs text-slate-300">Campus coordinator validates item authenticity.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">Step 3: Delivered & Tested</div>
+            <p class="text-xs text-slate-300">Buyer receives hardware and inspects functionality.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div class="text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-1">Step 4: Payment Released</div>
+            <p class="text-xs text-slate-300">Funds disbursed directly to the student team.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel p-4 rounded-2xl border border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterHardwareStore('all')" class="hardware-cat-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600/30 text-emerald-300 border border-emerald-500/40">All Hardware</button>
+          <button onclick="filterHardwareStore('Assembled Prototypes')" class="hardware-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">Assembled Prototypes</button>
+          <button onclick="filterHardwareStore('Sensors & IoT Modules')" class="hardware-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">Sensors & IoT Modules</button>
+          <button onclick="filterHardwareStore('Surplus Lab BOM / PCB Kits')" class="hardware-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-white bg-slate-900 border border-transparent">Surplus Lab BOM / PCB Kits</button>
+        </div>
+        <div class="text-xs text-slate-400">
+          🛡️ Institutional Coordinator Clearance Included
+        </div>
+      </div>
+
+      <div id="hardware-store-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </section>
+
+    <!-- Legacy / Alias Section for backward compatibility -->
+    <section id="view-bazaar" class="hidden"></section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: INDUSTRY GRANTS, FUNDING & COMMERCIAL PARTNERSHIPS -->
+    <!-- ========================================================================= -->
+    <section id="view-deals" class="hidden space-y-8">
+      
+      <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-white/[0.12] space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
+              <i data-lucide="badge-dollar-sign" class="w-3.5 h-3.5"></i>
+              <span>Commercialization & Research Grants</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black text-white font-heading">
+              Industry Grants & Commercial Partnerships
+            </h2>
+            <p class="text-base text-slate-300 max-w-2xl">
+              Enterprise companies, research labs, and investors can sponsor student innovations, license patents, or offer pre-placement grant funding.
+            </p>
+          </div>
+          <button onclick="openSubmitOfferModal()" class="btn-glow-primary px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shrink-0">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Submit Funding Proposal</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-300 px-2">
+          <span>Active Proposals & Grants</span>
+          <span id="offers-count-badge" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">0 Offers</span>
+        </div>
+        <div id="offers-list" class="space-y-4"></div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 6: VIDEO CONFERENCE & COLLABORATION MEETING ROOMS -->
+    <!-- ========================================================================= -->
+    <section id="view-meeting" class="hidden space-y-8">
+      
+      <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-white/[0.12] space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold">
+              <i data-lucide="video" class="w-3.5 h-3.5"></i>
+              <span>Virtual Collaboration & Milestone Auditing</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black text-white font-heading">
+              Virtual Meeting & Video Conference Rooms
+            </h2>
+            <p class="text-base text-slate-300 max-w-2xl">
+              Connect in real time with faculty mentors for milestone sign-offs, collaborate with your team, or pitch innovations to industry sponsors.
+            </p>
+          </div>
+          <button onclick="openNewMeetingModal()" class="btn-glow-primary px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shrink-0">
+            <i data-lucide="video" class="w-4 h-4"></i>
+            <span>Create Meeting Room</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Video Meeting Rooms List -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left: Available Rooms (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-300 px-1">
+            <span>Active Virtual Collaboration Rooms</span>
+            <span id="meetings-count-badge" class="px-2 py-0.5 rounded-md bg-cyan-950/60 text-cyan-300 border border-cyan-800/40">2 Active</span>
+          </div>
+          <div id="meetings-list" class="space-y-3">
+            <!-- Dynamic Room Cards -->
+          </div>
+        </div>
+
+        <!-- Right: Video Frame / Interactive Call Screen (7 cols) -->
+        <div class="lg:col-span-7 glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+              <h3 id="active-meeting-title" class="text-base font-bold text-white font-heading">
+                KrishiDrishti — Milestone 4 Faculty Review Call
+              </h3>
+            </div>
+            <span id="active-meeting-type" class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold">
+              Mentor Audit
+            </span>
+          </div>
+
+          <!-- Video Room Screen Area -->
+          <div id="video-embed-container" class="w-full h-80 rounded-2xl bg-slate-950/90 border border-white/[0.08] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+              <i data-lucide="video" class="w-8 h-8"></i>
+            </div>
+            <h4 class="text-sm font-bold text-white mb-1">Live WebRTC Collaboration Session</h4>
+            <p class="text-xs text-slate-400 max-w-sm">
+              Click below to join the virtual conference room with camera, microphone, and screen share support.
+            </p>
+            <a id="btn-launch-jitsi" href="https://meet.jit.si/ProVersed_KrishiDrishti_Review" target="_blank" class="mt-4 btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold inline-flex items-center space-x-2 shadow-lg">
+              <i data-lucide="external-link" class="w-4 h-4"></i>
+              <span>Launch Live Video Room</span>
+            </a>
+          </div>
+
+          <!-- Call Controls & Status Bar -->
+          <div class="flex items-center justify-between pt-2 text-xs text-slate-400">
+            <div class="flex items-center space-x-4">
+              <span class="flex items-center space-x-1.5 text-emerald-300">
+                <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                <span>Microphone Enabled</span>
+              </span>
+              <span class="flex items-center space-x-1.5 text-cyan-300">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                <span>HD Video</span>
+              </span>
+            </div>
+            <span class="text-slate-400">🔒 End-to-End Encrypted</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW: PROFILE DASHBOARD SYSTEM -->
+    <!-- ========================================================================= -->
+    <section id="view-profile" class="hidden space-y-8">
+      
+      <!-- 1. Profile Header Card -->
+      <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.12] dot-pattern relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          
+          <div class="flex items-center space-x-4 sm:space-x-5">
+            <div class="relative shrink-0">
+              <img id="profile-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ring-2 ring-emerald-500/50 bg-slate-900 object-cover shadow-xl" />
+              <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full ring-2 ring-slate-950"></span>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 id="profile-user-name" class="text-2xl sm:text-3xl font-black text-white font-heading">Aarav Sharma</h1>
+                <span id="profile-user-role" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Student Innovator</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Verified Academic</span>
+              </div>
+              <p id="profile-user-college" class="text-xs sm:text-sm text-slate-300 mt-1 font-medium">IIT Bombay</p>
+              <p id="profile-user-email" class="text-xs text-slate-400 font-mono mt-0.5">aarav.sharma@cse.iitb.ac.in</p>
+            </div>
+          </div>
+
+          <!-- Quick Stats Summary & Actions -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs">
+              <div class="text-center">
+                <div id="profile-quick-projects" class="text-sm font-black text-emerald-400 font-heading">0</div>
+                <div class="text-[10px] text-slate-400">Projects</div>
+              </div>
+              <div class="w-px h-6 bg-white/10"></div>
+              <div class="text-center">
+                <div id="profile-quick-orders" class="text-sm font-black text-amber-400 font-heading">0</div>
+                <div class="text-[10px] text-slate-400">Orders</div>
+              </div>
+              <div class="w-px h-6 bg-white/10"></div>
+              <div class="text-center">
+                <div id="profile-quick-ipfs" class="text-sm font-black text-cyan-400 font-heading">0</div>
+                <div class="text-[10px] text-slate-400">IPFS Verified</div>
+              </div>
+            </div>
+
+            <button onclick="openNewProjectModal()" class="btn-glow-primary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Submit Project</span>
+            </button>
+            <button onclick="switchProfileSubTab('settings')" class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 hover:text-white flex items-center space-x-1.5 transition-colors cursor-pointer">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+              <span>Settings</span>
+            </button>
+          </div>
+
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- 2. Profile Overview KPI Cards (4 Cards) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">My Submitted Innovations</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="profile-kpi-projects" class="text-3xl font-black text-white font-heading">0</div>
+          <div class="text-[11px] text-emerald-400 font-semibold flex items-center space-x-1">
+            <i data-lucide="shield-check" class="w-3 h-3"></i>
+            <span>Verified Academic Innovations</span>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Active Hardware Orders & Escrow</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="profile-kpi-orders" class="text-3xl font-black text-white font-heading">0</div>
+          <div class="text-[11px] text-amber-400 font-semibold">Under 4-Step Buyer Protection</div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Total Grants / Earnings (₹)</span>
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+              <i data-lucide="badge-indian-rupee" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="profile-kpi-grants" class="text-3xl font-black text-white font-heading">₹0</div>
+          <div class="text-[11px] text-cyan-400 font-semibold">Industry Grants & Store Royalties</div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-white/[0.08] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Verified Integrity Badges</span>
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <i data-lucide="award" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="profile-kpi-badges" class="text-3xl font-black text-white font-heading">100%</div>
+          <div class="text-[11px] text-indigo-400 font-semibold">Originality & IPFS Authenticated</div>
+        </div>
+
+      </div>
+
+      <!-- 3. Sub-Sections / Interactive Tabs -->
+      <div class="space-y-6">
+        
+        <!-- Interactive Sub-Tabs Navigation Bar -->
+        <div class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-white/10 w-fit">
+          <button id="profile-tab-btn-projects" onclick="switchProfileSubTab('projects')" class="profile-subtab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 transition-all flex items-center space-x-2 cursor-pointer">
+            <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+            <span>My Projects & Prototypes</span>
+          </button>
+          <button id="profile-tab-btn-orders" onclick="switchProfileSubTab('orders')" class="profile-subtab-btn px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/60 border border-transparent transition-all flex items-center space-x-2 cursor-pointer">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+            <span>My Hardware Orders & Purchases</span>
+          </button>
+          <button id="profile-tab-btn-settings" onclick="switchProfileSubTab('settings')" class="profile-subtab-btn px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/60 border border-transparent transition-all flex items-center space-x-2 cursor-pointer">
+            <i data-lucide="user-cog" class="w-4 h-4"></i>
+            <span>Account Settings & Details</span>
+          </button>
+        </div>
+
+        <!-- Sub-Section A: My Projects & Prototypes -->
+        <div id="profile-section-projects" class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-panel p-5 rounded-2xl border border-white/[0.08]">
+            <div>
+              <h3 class="text-base font-bold text-white font-heading">My Innovations & Hardware Prototypes</h3>
+              <p class="text-xs text-slate-400">Track development lifecycle, originality audits, and grant offers on your registered projects.</p>
+            </div>
+            <button onclick="openNewProjectModal()" class="btn-glow-primary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 shrink-0 cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Submit New Project</span>
+            </button>
+          </div>
+
+          <div id="profile-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- Sub-Section B: My Hardware Orders & Purchases -->
+        <div id="profile-section-orders" class="hidden space-y-4">
+          <div class="glass-panel p-5 rounded-2xl border border-white/[0.08]">
+            <h3 class="text-base font-bold text-white font-heading">My Hardware Orders & Purchases</h3>
+            <p class="text-xs text-slate-400">Real-time 4-step escrow status tracking: 1. Order Placed ➔ 2. College Verified ➔ 3. Delivered & Inspected ➔ 4. Funds Released.</p>
+          </div>
+
+          <div id="profile-orders-list" class="space-y-4"></div>
+        </div>
+
+        <!-- Sub-Section C: Account Settings & Details -->
+        <div id="profile-section-settings" class="hidden">
+          <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.12] space-y-6 max-w-3xl">
+            <div>
+              <h3 class="text-lg font-bold text-white font-heading">Account Settings & Profile Details</h3>
+              <p class="text-xs text-slate-400">Manage your innovator identity, academic affiliation, and developer tech stack preferences.</p>
+            </div>
+
+            <form id="form-profile-settings" onsubmit="saveUserProfile(event)" class="space-y-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+                  <input id="profile-edit-name" type="text" placeholder="Your Full Name" class="w-full px-4 py-3 rounded-xl glass-input text-xs" required />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1.5">College / Institution / Company</label>
+                  <input id="profile-edit-college" type="text" placeholder="e.g. IIT Bombay" class="w-full px-4 py-3 rounded-xl glass-input text-xs" required />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address (Academic / Verified)</label>
+                  <input id="profile-edit-email" type="email" class="w-full px-4 py-3 rounded-xl glass-input text-xs bg-slate-900/50 text-slate-400 cursor-not-allowed" readonly />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1.5">GitHub Profile URL</label>
+                  <input id="profile-edit-github" type="url" placeholder="https://github.com/your-username" class="w-full px-4 py-3 rounded-xl glass-input text-xs" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Tech Stack & Skills</label>
+                <input id="profile-edit-tech" type="text" placeholder="e.g. Python, PyTorch, ROS2, ESP32, C++, React" class="w-full px-4 py-3 rounded-xl glass-input text-xs" />
+                <p class="text-[10px] text-slate-500 mt-1">Comma-separated list of your primary programming languages, frameworks, and hardware platforms.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Innovation Focus & Bio</label>
+                <textarea id="profile-edit-bio" rows="3" placeholder="Brief summary of your research domain or engineering focus..." class="w-full px-4 py-3 rounded-xl glass-input text-xs"></textarea>
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-white/[0.08]">
+                <span class="text-xs text-slate-400">Changes will be saved to your local profile session.</span>
+                <button type="submit" class="btn-glow-primary px-6 py-3 rounded-xl text-xs font-bold flex items-center space-x-2 cursor-pointer">
+                  <i data-lucide="save" class="w-4 h-4"></i>
+                  <span>Save Profile Updates</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- 24/7 AI INNOVATION ASSISTANT CHATBOT FLOATING WIDGET -->
+  <!-- ========================================================================= -->
+  <div id="ai-chat-container" class="fixed bottom-6 right-6 z-50">
+    
+    <!-- Floating AI Chat Trigger Button -->
+    <button id="ai-chat-fab" onclick="toggleAIChat()" class="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600 flex items-center justify-center text-slate-950 font-black shadow-2xl shadow-emerald-500/40 hover:scale-110 active:scale-95 transition-all duration-200 ring-2 ring-white/30 cursor-pointer group">
+      <i data-lucide="bot" class="w-7 h-7 text-slate-950 group-hover:rotate-12 transition-transform"></i>
+      <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 ring-2 ring-slate-950 pulse-dot"></span>
+    </button>
+
+    <!-- Expandable AI Chat Window -->
+    <div id="ai-chat-window" class="hidden fixed bottom-24 right-6 w-96 max-w-[calc(100vw-32px)] h-[520px] rounded-3xl glass-panel border border-white/[0.15] shadow-2xl flex-col overflow-hidden modal-enter">
+      
+      <!-- Chat Header -->
+      <div class="p-4 border-b border-white/[0.08] bg-[#0e1424]/90 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="bot" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-1.5">
+              <h4 class="text-xs font-bold text-white">PRO-VERSED AI</h4>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Online</span>
+            </div>
+            <p class="text-[10px] text-slate-400">24/7 Innovation & Grants Assistant</p>
+          </div>
+        </div>
+        <button onclick="toggleAIChat()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+        <!-- Initial Greeting Message -->
+        <div class="flex items-start space-x-2">
+          <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="p-3 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-slate-200 max-w-[85%]">
+            Hello! 👋 I am your <strong>PRO-VERSED AI Assistant</strong>. Ask me anything about industry grants, originality checks, hardware BOM lists, or meeting rooms!
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Prompt Chips -->
+      <div class="px-3 py-2 border-t border-white/[0.05] bg-white/[0.02] flex items-center space-x-1.5 overflow-x-auto text-[11px]">
+        <button onclick="sendQuickPrompt('How do industry grants work?')" class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">💰 Grants</button>
+        <button onclick="sendQuickPrompt('Explain originality scoring')" class="px-2.5 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">🛡️ Originality</button>
+        <button onclick="sendQuickPrompt('How does 4-step escrow work?')" class="px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap">🛍️ Store</button>
+        <button onclick="sendQuickPrompt('How do virtual meeting rooms work?')" class="px-2.5 py-1 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">🎥 Video Call</button>
+      </div>
+
+      <!-- Chat Input Field -->
+      <form id="form-ai-chat" onsubmit="handleAIChatSubmit(event)" class="p-3 border-t border-white/[0.08] bg-[#0e1424]/90 flex items-center space-x-2">
+        <input id="ai-chat-input" type="text" placeholder="Ask AI assistant..." class="flex-1 px-3.5 py-2 rounded-xl glass-input text-xs" />
+        <button type="submit" class="btn-glow-primary p-2 rounded-xl text-slate-950 font-bold shrink-0">
+          <i data-lucide="send" class="w-4 h-4 text-white"></i>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 left-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal 1: Role Switcher (Demo Mode) -->
+  <div id="modal-demo" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-xl w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">Switch User Role (Demo Mode)</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Experience Pro-Versed from different perspectives with 1 click.</p>
+        </div>
+        <button onclick="closeModal('modal-demo')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="selectDemoPersona('usr_student_1')" class="w-full p-4 rounded-2xl bg-white/[0.03] hover:bg-emerald-500/10 border border-white/[0.08] hover:border-emerald-500/40 text-left transition-all flex items-center space-x-4 cursor-pointer group">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-white group-hover:text-emerald-300">Aarav Patel</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Student Creator</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">IIT Bombay • Builds projects, manages tasks & lists products</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-emerald-400"></i>
+        </button>
+
+        <button onclick="selectDemoPersona('usr_faculty_1')" class="w-full p-4 rounded-2xl bg-white/[0.03] hover:bg-indigo-500/10 border border-white/[0.08] hover:border-indigo-500/40 text-left transition-all flex items-center space-x-4 cursor-pointer group">
+          <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <i data-lucide="user-check" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-white group-hover:text-indigo-300">Dr. Sunita Raman</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Faculty Mentor</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">IISc Bangalore • Reviews student milestones & approves tasks</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-indigo-400"></i>
+        </button>
+
+        <button onclick="selectDemoPersona('usr_spoc_1')" class="w-full p-4 rounded-2xl bg-white/[0.03] hover:bg-cyan-500/10 border border-white/[0.08] hover:border-cyan-500/40 text-left transition-all flex items-center space-x-4 cursor-pointer group">
+          <div class="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <i data-lucide="building-2" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-white group-hover:text-cyan-300">Prof. R. K. Mukherjee</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300">Campus Coordinator (SPOC)</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">NIT Trichy • Verifies college project authenticity & IP compliance</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-cyan-400"></i>
+        </button>
+
+        <button onclick="selectDemoPersona('usr_industrialist_1')" class="w-full p-4 rounded-2xl bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/40 text-left transition-all flex items-center space-x-4 cursor-pointer group">
+          <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <i data-lucide="briefcase" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-white group-hover:text-amber-300">Vikram Singhania</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Industry Partner</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">Tata Elxsi / R&D • Funds projects, provides grants & acquires IP</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400"></i>
+        </button>
+
+        <button onclick="selectDemoPersona('usr_admin_1')" class="w-full p-4 rounded-2xl bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.08] hover:border-rose-500/40 text-left transition-all flex items-center space-x-4 cursor-pointer group">
+          <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <i data-lucide="shield" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-bold text-white group-hover:text-rose-300">Dr. Ananya Sharma</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">Platform Admin</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">Ministry Innovation Cell (MIC) • Platform oversight & governance</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-rose-400"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Full Project Details & IPFS CID Inspector -->
+  <div id="modal-project-details" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel max-w-3xl w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter my-8 space-y-6">
+      
+      <div class="flex items-start justify-between pb-4 border-b border-white/[0.08]">
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <span id="detail-category-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300">Hardware Prototype</span>
+            <span id="detail-domain-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300">AI & Robotics</span>
+          </div>
+          <h3 id="detail-title" class="text-2xl font-bold text-white font-heading">Project Title</h3>
+          <p id="detail-college" class="text-xs text-slate-400">IIT Bombay • Lead: <span id="detail-lead" class="text-slate-200 font-semibold">Aarav Sharma</span></p>
+        </div>
+        <button onclick="closeModal('modal-project-details')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+          <span class="block text-[11px] text-slate-400">Originality Score</span>
+          <span id="detail-originality" class="text-base font-black text-emerald-400 font-heading">98% Unique</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+          <span class="block text-[11px] text-slate-400">Patent Status</span>
+          <span id="detail-patent" class="text-base font-bold text-slate-200 font-heading">Provisional Filed</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] col-span-2 sm:col-span-1">
+          <span class="block text-[11px] text-slate-400">Estimated Budget</span>
+          <span id="detail-bom-total" class="text-base font-black text-cyan-400 font-heading">₹45,000</span>
+        </div>
+      </div>
+
+      <!-- IPFS Decentralized Storage Proof Box -->
+      <div class="p-3.5 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+          <div>
+            <span class="font-bold text-cyan-300">Decentralized IPFS Immutable Hash:</span>
+            <code id="detail-ipfs-cid" class="font-mono text-slate-300 ml-1">QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco</code>
+          </div>
+        </div>
+        <button onclick="copyIPFSCID()" class="text-cyan-400 hover:text-cyan-200 underline font-semibold cursor-pointer">Copy CID</button>
+      </div>
+
+      <div>
+        <h4 class="text-sm font-bold text-white mb-2">Project Summary & Abstract</h4>
+        <p id="detail-abstract" class="text-sm text-slate-300 leading-relaxed bg-white/[0.02] p-4 rounded-2xl border border-white/[0.05]">
+          Loading...
+        </p>
+      </div>
+
+      <div>
+        <h4 class="text-sm font-bold text-white mb-2">Tech Stack & Tools</h4>
+        <div id="detail-tech-stack" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <div>
+        <h4 class="text-sm font-bold text-white mb-2">Hardware & Component Breakdown</h4>
+        <div class="overflow-x-auto rounded-2xl border border-white/[0.08]">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-white/[0.05] text-slate-400 uppercase tracking-wider">
+              <tr>
+                <th class="py-2.5 px-3">Item / Part</th>
+                <th class="py-2.5 px-3">Quantity</th>
+                <th class="py-2.5 px-3">Unit Cost (₹)</th>
+                <th class="py-2.5 px-3">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="detail-bom-tbody" class="divide-y divide-white/[0.05] text-slate-300"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
+        <div class="flex items-center space-x-3">
+          <a id="detail-repo-link" href="#" target="_blank" class="text-xs font-semibold text-emerald-400 hover:underline flex items-center space-x-1">
+            <i data-lucide="github" class="w-3.5 h-3.5"></i>
+            <span>Code Repository</span>
+          </a>
+          <a id="detail-demo-link" href="#" target="_blank" class="text-xs font-semibold text-cyan-400 hover:underline flex items-center space-x-1">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span>Live Demonstration</span>
+          </a>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="detail-kanban-btn" class="btn-glow-secondary px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+            <span>Open Task Board</span>
+          </button>
+          <button id="detail-bid-btn" class="btn-glow-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer">
+            <i data-lucide="badge-dollar-sign" class="w-3.5 h-3.5"></i>
+            <span>Fund / Make Offer</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal 3: Submit New Project -->
+  <div id="modal-new-project" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel max-w-2xl w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter my-8 space-y-6">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">Submit New Student Project</h3>
+          <p class="text-xs text-slate-400">Register your innovation in the national repository with automated IPFS hashing.</p>
+        </div>
+        <button onclick="closeModal('modal-new-project')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-new-project" onsubmit="handleProjectSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Project Title</label>
+          <input id="create-proj-title" type="text" required placeholder="e.g. Smart Agri-Drone with Edge-AI Disease Detection" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Project Category</label>
+            <select id="create-proj-category" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="" disabled selected>Select Project Category</option>
+              <option value="Hardware Prototype">Hardware Prototype</option>
+              <option value="Software IP / Model">Software IP / Model</option>
+              <option value="Hybrid (IoT / Embedded)">Hybrid (IoT / Embedded)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Innovation Domain</label>
+            <select id="create-proj-domain" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="" disabled selected>Select Innovation Domain</option>
+              <option value="AI & Robotics">AI & Robotics</option>
+              <option value="Green Tech & Energy">Green Tech & Energy</option>
+              <option value="Healthcare & MedTech">Healthcare & MedTech</option>
+              <option value="Smart Cities & IoT">Smart Cities & IoT</option>
+              <option value="FinTech & Security">FinTech & Security</option>
+              <option value="Aerospace & Defense">Aerospace & Defense</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Current Progress Stage</label>
+          <select id="create-proj-lifecycle" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+            <option value="" disabled selected>Select Progress Stage</option>
+            <option value="Ideation">1. Idea Phase</option>
+            <option value="In Development">2. In Development</option>
+            <option value="Prototype Ready">3. Working Prototype Ready</option>
+            <option value="Completed">4. Completed</option>
+            <option value="Research Published">5. Research Published</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Technical Summary / Abstract</label>
+          <textarea id="create-proj-abstract" rows="4" required placeholder="Describe your project, the problem it solves, and its innovative features..." class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Tech Stack & Tools (comma separated)</label>
+          <input id="create-proj-tech" type="text" placeholder="e.g. Python, PyTorch, ROS2, Raspberry Pi 4, OpenCV" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+        </div>
+
+        <div id="container-proj-urls-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Cost (₹)</label>
+            <input id="create-proj-budget" type="number" placeholder="e.g. 25000" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+          <div id="container-proj-repo">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Code Repository URL</label>
+            <input id="create-proj-repo" type="url" placeholder="https://github.com/..." class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Live Demo / Video URL</label>
+            <input id="create-proj-demo" type="url" placeholder="https://youtube.com/..." class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-new-project')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">
+            Cancel
+          </button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">
+            Submit Project
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Add New Task -->
+  <div id="modal-new-task" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-lg w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">Add New Milestone Task</h3>
+          <p class="text-xs text-slate-400">Assign development work to your project team.</p>
+        </div>
+        <button onclick="closeModal('modal-new-task')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-new-task" onsubmit="handleTaskSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Task Title</label>
+          <input id="task-create-title" type="text" required placeholder="e.g. Calibrate thermal sensor on drone frame" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Starting Column</label>
+            <select id="task-create-col" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="backlog">1. To Do</option>
+              <option value="in_progress">2. In Progress</option>
+              <option value="faculty_audit">3. Under Review</option>
+              <option value="completed">4. Completed</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Priority</label>
+            <select id="task-create-priority" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Assignee</label>
+            <input id="task-create-assignee" type="text" value="Aarav Sharma" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Target Completion Date</label>
+            <input id="task-create-due" type="date" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Task Description</label>
+          <textarea id="task-create-desc" rows="3" placeholder="Add specific technical steps, test criteria, or notes..." class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-new-task')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: List Product on Marketplace -->
+  <div id="modal-list-bazaar" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-lg w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">List Product on Project Store</h3>
+          <p class="text-xs text-slate-400">Offer hardware or software licenses with safe buyer protection & IPFS CID.</p>
+        </div>
+        <button onclick="closeModal('modal-list-bazaar')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-list-bazaar" onsubmit="handleBazaarSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Product Title</label>
+          <input id="bazaar-create-title" type="text" required placeholder="e.g. Assembled Edge-AI Camera Module" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Asset Category</label>
+            <select id="bazaar-create-cat" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <optgroup label="Software & Project Store" class="bg-slate-900 text-cyan-300 font-bold">
+                <option value="Software IP & Commercial License" class="text-slate-200">Software IP & Commercial License</option>
+                <option value="AI/ML Models" class="text-slate-200">AI/ML Models</option>
+                <option value="Full-Stack Web/Mobile Systems" class="text-slate-200">Full-Stack Web/Mobile Systems</option>
+              </optgroup>
+              <optgroup label="Hardware & Parts Store" class="bg-slate-900 text-emerald-300 font-bold">
+                <option value="Assembled Prototypes" class="text-slate-200">Assembled Prototypes</option>
+                <option value="Sensors & IoT Modules" class="text-slate-200">Sensors & IoT Modules</option>
+                <option value="Surplus Lab BOM / PCB Kits" class="text-slate-200">Surplus Lab BOM / PCB Kits</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Price (₹)</label>
+            <input id="bazaar-create-price" type="number" required value="15000" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Technical Specs (Key: Value, one per line)</label>
+          <textarea id="bazaar-create-specs" rows="3" placeholder="Power: 12V 2A&#10;Weight: 350g&#10;Connectivity: LoRa & Wi-Fi" class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Product Description</label>
+          <textarea id="bazaar-create-desc" rows="3" required placeholder="Describe what is included and testing condition..." class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-list-bazaar')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">List Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: Submit Funding Proposal -->
+  <div id="modal-submit-offer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-lg w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">Submit Funding / Grant Proposal</h3>
+          <p class="text-xs text-slate-400">Offer financial sponsorship or commercial licensing to students.</p>
+        </div>
+        <button onclick="closeModal('modal-submit-offer')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-submit-offer" onsubmit="handleOfferSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Target Student Project</label>
+          <select id="offer-target-project" class="w-full px-4 py-3 rounded-xl glass-input text-sm"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Proposal Type</label>
+            <select id="offer-proposal-type" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="Commercial IP License">Commercial IP License</option>
+              <option value="Research Grant Sponsorship">Research Grant Sponsorship</option>
+              <option value="Pre-Placement Hiring Fund">Pre-Placement Hiring Fund</option>
+              <option value="Seed Equity / Prototype Fund">Seed / Prototype Fund</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Funding Amount (₹)</label>
+            <input id="offer-amount-input" type="number" required value="250000" class="w-full px-4 py-3 rounded-xl glass-input text-sm font-bold text-emerald-400" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Terms, Scope & Milestones</label>
+          <textarea id="offer-terms-input" rows="4" required placeholder="Detail the commercial terms, deliverables, student pre-placement offer, or milestones required..." class="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-submit-offer')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">Submit Proposal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 7: Create Virtual Meeting Room -->
+  <div id="modal-new-meeting" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-lg w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div>
+          <h3 class="text-xl font-bold text-white font-heading">Create Virtual Meeting Room</h3>
+          <p class="text-xs text-slate-400">Launch a live video session for milestone audits or grant pitches.</p>
+        </div>
+        <button onclick="closeModal('modal-new-meeting')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-new-meeting" onsubmit="handleMeetingSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Meeting Session Title</label>
+          <input id="meeting-create-title" type="text" required placeholder="e.g. KrishiDrishti — Milestone 4 Mentor Review" class="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Meeting Purpose</label>
+            <select id="meeting-create-type" class="w-full px-4 py-3 rounded-xl glass-input text-sm">
+              <option value="Mentor Review">Faculty Mentor Review</option>
+              <option value="Team Collaboration">Student Team Sync</option>
+              <option value="Industry Pitch">Industry Grant Pitch</option>
+              <option value="SPOC Audit">Campus SPOC Audit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Associated Project</label>
+            <select id="meeting-create-project" class="w-full px-4 py-3 rounded-xl glass-input text-sm"></select>
+          </div>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-new-meeting')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">Start Meeting</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 8: Forgot / Reset Password -->
+  <div id="modal-forgot-password" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-md w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <i data-lucide="key-round" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white font-heading">Reset Password</h3>
+            <p class="text-xs text-slate-400">Account recovery & credentials reset</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-forgot-password')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-forgot-password" onsubmit="handleForgotPasswordSubmit(event)" class="space-y-4">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Enter your registered institutional or Gmail email address. A secure recovery link will be sent to reset your session credentials.
+        </p>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Registered Email Address</label>
+          <div class="relative">
+            <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input 
+              id="forgot-email-input" 
+              type="email" 
+              required 
+              placeholder="name@gmail.com" 
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition-all"
+            />
+          </div>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-forgot-password')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg flex items-center space-x-2">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Send Recovery Link</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 9: Set New Password via Token -->
+  <div id="modal-set-new-password" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-md w-full rounded-3xl border border-white/[0.15] p-6 sm:p-8 modal-enter space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white font-heading">Set New Password</h3>
+            <p class="text-xs text-slate-400">Enter your new secure password</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-set-new-password')" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/[0.05]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-set-new-password" onsubmit="handleResetPasswordSubmit(event)" class="space-y-4">
+        <input type="hidden" id="reset-token-input" value="" />
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+            <span>New Password</span>
+            <span class="text-[10px] text-emerald-400/80">Min 8 chars, 1 upper, 1 num</span>
+          </label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input 
+              id="reset-new-password" 
+              type="password" 
+              required 
+              placeholder="••••••••••••" 
+              class="w-full pl-10 pr-10 py-2.5 rounded-xl glass-input text-xs font-medium text-white placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition-all"
+            />
+            <button 
+              type="button" 
+              onclick="togglePasswordVisibility('reset-new-password', this)" 
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              tabindex="-1"
+            >
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeModal('modal-set-new-password')" class="btn-glow-secondary px-5 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="btn-glow-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg flex items-center space-x-2">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Update Password</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom JavaScript Logic -->
+  <script src="/static/app.js"></script>
+  <!-- Google Anti-Gravity Physics Engine -->
+  <script src="/static/antigravity.js"></script>
+</body>
+</html>
