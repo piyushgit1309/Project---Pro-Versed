@@ -1481,12 +1481,24 @@ async def pin_to_ipfs(payload: Dict[str, Any], current_user: Dict[str, Any] = De
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+@app.get("/api/meetings")
+def list_meetings(current_user: Optional[Dict[str, Any]] = Depends(get_optional_authenticated_user)):
+    """Returns active video collaboration rooms."""
+    return meeting_service.list_rooms()
+
+@app.post("/api/meetings")
 @app.post("/api/meetings/schedule")
 def schedule_meeting(req: Dict[str, Any], current_user: Dict[str, Any] = Depends(get_current_authenticated_user)):
     """Creates a secure encrypted video room for corporate evaluation and mentor reviews."""
     title = req.get("title", "Project Review & IP Transfer")
-    participants = req.get("participants", [current_user.get("name", "User")])
-    room = meeting_service.create_room(title, participants)
+    room = meeting_service.create_room(
+        title=title,
+        host_id=current_user.get("id", "usr_anon"),
+        host_name=current_user.get("name", "User"),
+        project_id=req.get("project_id"),
+        project_title=req.get("project_title"),
+        meeting_type=req.get("meeting_type", "Collaboration")
+    )
     return room
 
 # ==========================================
@@ -1544,4 +1556,6 @@ async def custom_404_handler(request: Request, exc):
 
 # Mount Static Frontend SPA Directory if present
 if os.path.exists(target_static):
-    app.mount("/", StaticFiles(directory=target_static, html=True), name="static")
+    app.mount("/static", StaticFiles(directory=target_static), name="static_assets")
+    app.mount("/", StaticFiles(directory=target_static, html=True), name="static_root")
+

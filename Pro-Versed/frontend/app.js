@@ -1511,7 +1511,7 @@ async function handleProjectSubmit(e) {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/api/projects`, {
+    const res = await authFetch(`${API_BASE}/api/projects`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -1701,7 +1701,7 @@ function getNextCol(col) {
 
 async function moveTaskColumn(taskId, newCol) {
   try {
-    const res = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
+    const res = await authFetch(`${API_BASE}/api/tasks/${taskId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ column: newCol })
@@ -1715,7 +1715,7 @@ async function moveTaskColumn(taskId, newCol) {
 
 async function approveFacultyAuditTask(taskId) {
   try {
-    const res = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
+    const res = await authFetch(`${API_BASE}/api/tasks/${taskId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1763,7 +1763,7 @@ async function handleTaskSubmit(e) {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/api/tasks`, {
+    const res = await authFetch(`${API_BASE}/api/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -1813,7 +1813,7 @@ async function runPlagiarismAudit() {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`${API_BASE}/api/plagiarism/check`, {
+    const res = await authFetch(`${API_BASE}/api/plagiarism/check`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1865,7 +1865,7 @@ async function runPlagiarismAudit() {
 
 async function loadPlagiarismAuditLogs() {
   try {
-    const res = await fetch(`${API_BASE}/api/plagiarism/audits`);
+    const res = await authFetch(`${API_BASE}/api/audit-logs`);
     if (!res.ok) return;
     const logs = await res.json();
 
@@ -2282,7 +2282,7 @@ async function handleEscrowClick(itemId, action) {
       buyer_college: state.currentUser ? (state.currentUser.college || state.currentUser.collegeCompany || "") : null
     };
 
-    const res = await fetch(`${API_BASE}/api/bazaar/items/${itemId}/escrow`, {
+    const res = await authFetch(`${API_BASE}/api/bazaar/items/${itemId}/escrow`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -2340,7 +2340,7 @@ async function handleBazaarSubmit(e) {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/api/bazaar/items`, {
+    const res = await authFetch(`${API_BASE}/api/bazaar/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -2372,7 +2372,7 @@ function openSubmitOfferModal(projectId = null) {
 
 async function loadIndustrialOffers() {
   try {
-    const res = await fetch(`${API_BASE}/api/offers`);
+    const res = await authFetch(`${API_BASE}/api/industrial/offers`);
     if (!res.ok) throw new Error("Could not load proposals.");
     const offers = await res.json();
     state.offers = offers;
@@ -2402,20 +2402,25 @@ function renderOffersList(offers) {
     return;
   }
 
-  const role = state.currentUser.role;
+  const role = state.currentUser ? state.currentUser.role : "student";
   const isStudentOrMentor = role === "student" || role === "faculty" || role === "admin";
 
   container.innerHTML = offers.map(o => {
     let statusBadge = "bg-amber-500/20 text-amber-300 border-amber-500/30";
-    if (o.status === "accepted") statusBadge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
-    else if (o.status === "rejected") statusBadge = "bg-rose-500/20 text-rose-300 border-rose-500/30";
-    else if (o.status === "counter_offered") statusBadge = "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
+    const st = (o.status || "Pending").toLowerCase();
+    if (st === "accepted") statusBadge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+    else if (st === "rejected") statusBadge = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+    else if (st === "countered" || st === "counter_offered") statusBadge = "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
+
+    const displayAmount = o.offer_amount_inr || o.amount || 0;
+    const displayBuyer = o.buyer_name || o.buyer_company || 'Enterprise Sponsor';
+    const displayTerms = o.deliverables_message || o.terms || 'No specific terms provided.';
 
     return `
       <div class="glass-panel rounded-3xl p-6 border border-white/[0.08] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-2 max-w-2xl">
           <div class="flex items-center space-x-2">
-            <span class="text-xs font-bold text-white">${o.buyer_name || 'Enterprise Sponsor'}</span>
+            <span class="text-xs font-bold text-white">${displayBuyer}</span>
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadge}">${(o.status || 'Under Review').toUpperCase()}</span>
             <span class="text-xs text-slate-400">• ${o.proposal_type || 'Research Grant'}</span>
           </div>
@@ -2424,23 +2429,23 @@ function renderOffersList(offers) {
             Target: <span class="text-emerald-400">${o.project_title || 'Student Innovation'}</span>
           </h4>
 
-          <p class="text-xs text-slate-300 leading-relaxed">${o.terms || 'No specific terms provided.'}</p>
+          <p class="text-xs text-slate-300 leading-relaxed">${displayTerms}</p>
         </div>
 
         <div class="flex flex-col md:items-end space-y-3 shrink-0">
           <div class="text-2xl font-black text-emerald-400 font-heading">
-            ₹${(o.amount || 0).toLocaleString()}
+            ₹${displayAmount.toLocaleString()}
           </div>
 
-          ${isStudentOrMentor && (o.status === "pending" || !o.status) ? `
+          ${isStudentOrMentor && (st === "pending" || !o.status) ? `
             <div class="flex items-center space-x-2">
-              <button onclick="handleOfferDecision('${o.id}', 'accepted')" class="btn-glow-primary px-3.5 py-1.5 rounded-xl text-xs font-bold">
+              <button onclick="handleOfferDecision('${o.id}', 'Accepted')" class="btn-glow-primary px-3.5 py-1.5 rounded-xl text-xs font-bold">
                 Accept Deal
               </button>
               <button onclick="promptCounterOffer('${o.id}')" class="btn-glow-secondary px-3.5 py-1.5 rounded-xl text-xs font-bold">
                 Counter
               </button>
-              <button onclick="handleOfferDecision('${o.id}', 'rejected')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-800/50 hover:bg-rose-900/60">
+              <button onclick="handleOfferDecision('${o.id}', 'Rejected')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-950/40 text-rose-400 border border-rose-800/50 hover:bg-rose-900/60">
                 Decline
               </button>
             </div>
@@ -2465,15 +2470,13 @@ async function handleOfferSubmit(e) {
   const payload = {
     project_id: projectId,
     project_title: projectTitle,
-    buyer_id: state.currentUser.id,
-    buyer_name: state.currentUser.company || state.currentUser.name,
+    offer_amount_inr: amount,
     proposal_type: type,
-    amount,
-    terms
+    deliverables_message: terms
   };
 
   try {
-    const res = await fetch(`${API_BASE}/api/offers`, {
+    const res = await authFetch(`${API_BASE}/api/industrial/offers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -2489,14 +2492,15 @@ async function handleOfferSubmit(e) {
 }
 
 async function handleOfferDecision(offerId, status) {
+  const normStatus = status === "accepted" ? "Accepted" : status === "rejected" ? "Rejected" : status === "withdrawn" ? "Withdrawn" : status;
   try {
-    const res = await fetch(`${API_BASE}/api/offers/${offerId}`, {
+    const res = await authFetch(`${API_BASE}/api/industrial/offers/${offerId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status: normStatus })
     });
     if (!res.ok) throw new Error("Could not update proposal.");
-    showToast(`Proposal status marked as ${status.toUpperCase()}!`, "success");
+    showToast(`Proposal status marked as ${normStatus.toUpperCase()}!`, "success");
     loadIndustrialOffers();
   } catch (err) {
     showToast("Action failed.", "error");
@@ -2508,12 +2512,12 @@ async function promptCounterOffer(offerId) {
   if (!counterAmount) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/offers/${offerId}`, {
+    const res = await authFetch(`${API_BASE}/api/industrial/offers/${offerId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        status: "counter_offered",
-        amount: parseFloat(counterAmount)
+        status: "Countered",
+        counter_amount_inr: parseFloat(counterAmount)
       })
     });
     if (!res.ok) throw new Error("Counter offer failed.");
@@ -2535,7 +2539,7 @@ function populateMeetingProjectsSelect(projects) {
 
 async function loadMeetings() {
   try {
-    const res = await fetch(`${API_BASE}/api/meetings`);
+    const res = await authFetch(`${API_BASE}/api/meetings`);
     if (!res.ok) return;
     const data = await res.json();
     state.meetings = data;
@@ -2612,7 +2616,7 @@ async function handleMeetingSubmit(e) {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/api/meetings`, {
+    const res = await authFetch(`${API_BASE}/api/meetings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -2692,13 +2696,13 @@ async function handleAIChatSubmit(e) {
   if (window.lucide) lucide.createIcons();
 
   try {
-    const res = await fetch(`${API_BASE}/api/ai/chat`, {
+    const res = await authFetch(`${API_BASE}/api/ai/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: msg,
-        role: state.currentUser.role,
-        name: state.currentUser.name
+        role: state.currentUser ? state.currentUser.role : "student",
+        name: state.currentUser ? state.currentUser.name : "User"
       })
     });
 
@@ -3198,7 +3202,7 @@ async function loadNationalAnalytics() {
   renderComplianceChart(demoCompliance);
 
   try {
-    const res = await fetch(`${API_BASE}/api/analytics/national`);
+    const res = await authFetch(`${API_BASE}/api/analytics/national-overview`);
     if (!res.ok) throw new Error("Could not fetch analytics.");
     const data = await res.json();
     state.analytics = data;
